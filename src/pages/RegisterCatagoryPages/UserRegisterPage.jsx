@@ -12,13 +12,14 @@ function UserRegisterPage() {
     district: "",
     ward: "",
     area: "",
+    house_and_road: "",
   });
   const [message, setMessage] = useState("");
 
   const handlesubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:3000/register", formdata);
+      await axios.post("http://localhost:5000/api/users/register", formdata);
       setMessage("The data is successfully taken");
       setFormData({
         name: "",
@@ -29,6 +30,7 @@ function UserRegisterPage() {
         district: "",
         ward: "",
         area: "",
+        house_and_road: "",
       });
     } catch (error) {
       console.error("Error during registration:", error);
@@ -108,6 +110,14 @@ function UserRegisterPage() {
           className="border border-gray-300 p-2 rounded mb-4"
           value={formdata.area}
           onChange={(e) => setFormData({ ...formdata, area: e.target.value })}
+          required
+        />
+        <input
+          type="text"
+          placeholder="house and road"
+          className="border border-gray-300 p-2 rounded mb-4"
+          value={formdata.house_and_road}
+          onChange={(e) => setFormData({ ...formdata, house_and_road: e.target.value })}
           required
         />
         <button

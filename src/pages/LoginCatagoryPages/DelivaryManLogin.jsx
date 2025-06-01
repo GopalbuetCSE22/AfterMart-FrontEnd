@@ -10,7 +10,7 @@ function DelivaryManLogin() {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/delivaryManlogin",
+        "http://localhost:5000/api/auth/delivarymanlogin",
         formdata
       );
       const { token } = response.data;

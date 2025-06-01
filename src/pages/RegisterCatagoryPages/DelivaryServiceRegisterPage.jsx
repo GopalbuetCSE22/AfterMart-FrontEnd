@@ -14,7 +14,7 @@ function DelivaryServiceRegisterPage() {
     e.preventDefault();
     try {
       await axios.post(
-        "http://localhost:3000/delivaryServiceRegister",
+        "http://localhost:5000/api/delivery/register",
         formdata
       );
       setMessage("The data is successfully taken");

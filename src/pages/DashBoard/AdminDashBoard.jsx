@@ -10,10 +10,13 @@ function AdminDashBoard() {
   // user to verify
   const [usersToVerify, setUsersToVerify] = useState([]);
 
+  const adminId = localStorage.getItem("admin_id");
+
   const handleVerifyCompany = async (companyId) => {
     try {
       await axios.patch(
-        `http://localhost:3000/verifyDeliveryCompany/${companyId}`
+        `http://localhost:5000/api/delivery/verifyDeliveryCompany/${companyId}`,
+        { admin_id: adminId }
       );
       setDeliveryCompany(
         deliveryCompany.filter((c) => c.company_id !== companyId)
@@ -25,12 +28,8 @@ function AdminDashBoard() {
 
   const handleVerifyUser = async (userId) => {
     try {
-      await axios.patch(
-        `http://localhost:3000/verifyUser/${userId}`
-      );
-      setUsersToVerify(
-        usersToVerify.filter((u) => u.user_id !== userId)
-      );
+      await axios.patch(`http://localhost:5000/api/users/verifyUser/${userId}`);
+      setUsersToVerify(usersToVerify.filter((u) => u.user_id !== userId));
     } catch (error) {
       console.error("Error verifying user:", error);
     }
@@ -38,18 +37,20 @@ function AdminDashBoard() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:3000/showDeliveryCompanyToVerify")
+      .get("http://localhost:5000/api/delivery/showDeliveryCompanyToVerify")
       .then((res) => {
         setDeliveryCompany(res.data);
       });
 
-    axios.get("http://localhost:3000/showProductsToApprove").then((res) => {
+    axios.get("http://localhost:5000/showProductsToApprove").then((res) => {
       setProductsToApprove(res.data);
     });
 
-    axios.get("http://localhost:3000/showUsersToVerify").then((res) => {
-      setUsersToVerify(res.data);
-    });
+    axios
+      .get("http://localhost:5000/api/users/showUsersToVerify")
+      .then((res) => {
+        setUsersToVerify(res.data);
+      });
   }, []);
 
   return (
@@ -71,20 +72,29 @@ function AdminDashBoard() {
               <table className="min-w-full text-sm text-left">
                 <thead>
                   <tr className="bg-blue-50">
-                    <th className="py-2 px-4 font-medium text-blue-900">Company Name</th>
-                    <th className="py-2 px-4 font-medium text-blue-900">Trade License</th>
+                    <th className="py-2 px-4 font-medium text-blue-900">
+                      Company Name
+                    </th>
+                    <th className="py-2 px-4 font-medium text-blue-900">
+                      Trade License
+                    </th>
                     <th className="py-2 px-4"></th>
                   </tr>
                 </thead>
                 <tbody>
                   {deliveryCompany.map((company) => (
-                    <tr key={company.company_id} className="hover:bg-blue-50 transition">
+                    <tr
+                      key={company.company_id}
+                      className="hover:bg-blue-50 transition"
+                    >
                       <td className="py-2 px-4">{company.company_name}</td>
                       <td className="py-2 px-4">{company.trade_license}</td>
                       <td className="py-2 px-4">
                         <button
                           className="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded shadow transition"
-                          onClick={() => handleVerifyCompany(company.company_id)}
+                          onClick={() =>
+                            handleVerifyCompany(company.company_id)
+                          }
                         >
                           Verify
                         </button>
@@ -110,14 +120,21 @@ function AdminDashBoard() {
               <table className="min-w-full text-sm text-left">
                 <thead>
                   <tr className="bg-green-50">
-                    <th className="py-2 px-4 font-medium text-green-900">Product Name</th>
-                    <th className="py-2 px-4 font-medium text-green-900">Seller</th>
+                    <th className="py-2 px-4 font-medium text-green-900">
+                      Product Name
+                    </th>
+                    <th className="py-2 px-4 font-medium text-green-900">
+                      Seller
+                    </th>
                     <th className="py-2 px-4"></th>
                   </tr>
                 </thead>
                 <tbody>
                   {productsToApprove.map((product) => (
-                    <tr key={product.product_id} className="hover:bg-green-50 transition">
+                    <tr
+                      key={product.product_id}
+                      className="hover:bg-green-50 transition"
+                    >
                       <td className="py-2 px-4">{product.product_name}</td>
                       <td className="py-2 px-4">{product.seller_name}</td>
                       <td className="py-2 px-4">
@@ -148,15 +165,24 @@ function AdminDashBoard() {
               <table className="min-w-full text-sm text-left">
                 <thead>
                   <tr className="bg-purple-50">
-                    <th className="py-2 px-4 font-medium text-purple-900">User Name</th>
-                    <th className="py-2 px-4 font-medium text-purple-900">Email</th>
-                    <th className="py-2 px-4 font-medium text-purple-900">Phone</th>
+                    <th className="py-2 px-4 font-medium text-purple-900">
+                      User Name
+                    </th>
+                    <th className="py-2 px-4 font-medium text-purple-900">
+                      Email
+                    </th>
+                    <th className="py-2 px-4 font-medium text-purple-900">
+                      Phone
+                    </th>
                     <th className="py-2 px-4"></th>
                   </tr>
                 </thead>
                 <tbody>
                   {usersToVerify.map((user) => (
-                    <tr key={user.user_id} className="hover:bg-purple-50 transition">
+                    <tr
+                      key={user.user_id}
+                      className="hover:bg-purple-50 transition"
+                    >
                       <td className="py-2 px-4">{user.name}</td>
                       <td className="py-2 px-4">{user.email}</td>
                       <td className="py-2 px-4">{user.phone}</td>

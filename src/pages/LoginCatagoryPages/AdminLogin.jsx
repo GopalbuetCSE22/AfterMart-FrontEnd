@@ -11,13 +11,19 @@ function AdminLogin() {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/adminlogin",
+        "http://localhost:5000/api/auth/adminlogin",
         formdata
       );
       const { token } = response.data;
       localStorage.setItem("authToken", token);
       setMessage("Login successful!");
       setFormData({ email: "", password: "" });
+      
+      localStorage.setItem("admin_id", response.data.admin_id);
+      // // After successful login ,store the admin_id in localStorage for later use
+      // localStorage.setItem("admin_id", response.data.admin_id);
+      // console.log("Admin ID:", response.data.admin_id);
+
       navigate("/adminDashboard"); // Uncomment if you want to redirect
     } catch (error) {
       console.error("Error during login:", error);

@@ -1,22 +1,24 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 function UserLogin() {
   const [formdata, setFormData] = useState({ email: "", password: "" });
   const [message, setMessage] = useState("");
-
+  const navigate = useNavigate();
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/userlogin",
+        "http://localhost:5000/api/auth/userlogin",
         formdata
       );
       const { token } = response.data;
       localStorage.setItem("authToken", token);
       setMessage("Login successful!");
-      setFormData({email:"" , password:""})
+      setFormData({ email: "", password: "" });
+      navigate("/userDashboard");
       // navigate("/protected-data"); // Uncomment if you want to redirect
     } catch (error) {
       console.error("Error during login:", error);
