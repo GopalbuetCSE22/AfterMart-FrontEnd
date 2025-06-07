@@ -17,6 +17,10 @@ function UserLogin() {
       const { token } = response.data;
       localStorage.setItem("authToken", token);
       setMessage("Login successful!");
+
+      // After successful login or registration
+      localStorage.setItem("user_id", response.data.user_id); // Make sure this matches your backend response
+      
       setFormData({ email: "", password: "" });
       navigate("/userDashboard");
       // navigate("/protected-data"); // Uncomment if you want to redirect

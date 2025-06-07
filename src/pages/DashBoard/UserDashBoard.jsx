@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import { Navigate, useNavigate } from "react-router-dom";
-
+import UploadImage from "../../components/UploadImage";
 function UserDashBoard() {
   const [activeSection, setActiveSection] = useState("Info");
 
@@ -125,6 +125,9 @@ function UserDashBoard() {
 
         {/* Main Content */}
         <div className="flex-1 ml-64 p-8">{renderMainContent()}</div>
+      </div>
+      <div>
+        <UploadImage />
       </div>
       {/* <Footer /> */}
     </>

@@ -2,7 +2,7 @@ import React from "react";
 import { useState } from "react";
 import axios from "axios"
 
-function UserRegisterPage() {
+function UserRegisterPage() {  
   const [formdata, setFormData] = useState({
     name: "",
     email: "",
