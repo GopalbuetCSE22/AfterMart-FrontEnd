@@ -34,6 +34,16 @@ function AdminDashBoard() {
       console.error("Error verifying user:", error);
     }
   };
+  const handleVerifyProduct = async (product_id) => {
+    try {
+      await axios.patch(
+        `http://localhost:5000/api/products/verifyProduct/${product_id}`
+      );
+      setProductsToApprove(productsToApprove.filter((u) => u.product_id !== product_id));
+    } catch (error) {
+      console.error("Error verofying product", error);
+    }
+  };
 
   useEffect(() => {
     axios
@@ -42,9 +52,11 @@ function AdminDashBoard() {
         setDeliveryCompany(res.data);
       });
 
-    axios.get("http://localhost:5000/showProductsToApprove").then((res) => {
-      setProductsToApprove(res.data);
-    });
+    axios
+      .get("http://localhost:5000/api/products/showProductsToApprove")
+      .then((res) => {
+        setProductsToApprove(res.data);
+      });
 
     axios
       .get("http://localhost:5000/api/users/showUsersToVerify")
@@ -53,153 +65,185 @@ function AdminDashBoard() {
       });
   }, []);
 
+  // Custom card shadow and glass effect
+  const cardClass =
+    "bg-white/70 rounded-3xl shadow-xl border border-gray-200 backdrop-blur-lg hover:scale-[1.03] transition-transform duration-200 p-8 relative overflow-hidden";
+  const tableHeadClass =
+    "py-3 px-5 font-semibold uppercase tracking-wide text-xs bg-gradient-to-r from-gray-50 to-gray-100";
+  const btnClass =
+    "flex items-center gap-2 bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white px-5 py-2 rounded-lg shadow-lg font-semibold transition focus:outline-none focus:ring-2 focus:ring-green-400";
+  const sectionTitle =
+    "text-2xl font-bold mb-8 flex items-center gap-3 drop-shadow text-gray-800";
+  const badgeClass =
+    "inline-block w-3 h-3 rounded-full shadow";
+  const emptyClass =
+    "text-gray-400 text-center py-12 text-lg italic";
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-8">
-      <h1 className="text-4xl font-extrabold mb-10 text-center text-gray-800 tracking-tight drop-shadow">
-        Admin Dashboard
-      </h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Delivery Company Verification Requests */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 border border-blue-100">
-          <h2 className="text-2xl font-semibold mb-6 text-blue-700 flex items-center gap-2">
-            <span className="inline-block w-2 h-2 bg-blue-500 rounded-full"></span>
-            Delivery Company Verification
-          </h2>
-          {deliveryCompany.length === 0 ? (
-            <p className="text-gray-400 text-center py-8">No requests yet.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm text-left">
-                <thead>
-                  <tr className="bg-blue-50">
-                    <th className="py-2 px-4 font-medium text-blue-900">
-                      Company Name
-                    </th>
-                    <th className="py-2 px-4 font-medium text-blue-900">
-                      Trade License
-                    </th>
-                    <th className="py-2 px-4"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {deliveryCompany.map((company) => (
-                    <tr
-                      key={company.company_id}
-                      className="hover:bg-blue-50 transition"
-                    >
-                      <td className="py-2 px-4">{company.company_name}</td>
-                      <td className="py-2 px-4">{company.trade_license}</td>
-                      <td className="py-2 px-4">
-                        <button
-                          className="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded shadow transition"
-                          onClick={() =>
-                            handleVerifyCompany(company.company_id)
-                          }
-                        >
-                          Verify
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+    <div className="min-h-screen bg-gradient-to-br from-indigo-200 via-purple-100 to-pink-200 p-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col items-center mb-16">
+          <h1 className="text-6xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-indigo-700 via-purple-700 to-pink-600 drop-shadow-2xl tracking-tight mb-2">
+            Admin Dashboard
+          </h1>
+          <p className="text-lg text-gray-600 font-medium">
+            Manage all verification and approval requests at a glance.
+          </p>
         </div>
-        <br />
-        {/* Product Approval Requests */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 border border-green-100">
-          <h2 className="text-2xl font-semibold mb-6 text-green-700 flex items-center gap-2">
-            <span className="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
-            Product Approval Requests
-          </h2>
-          {productsToApprove.length === 0 ? (
-            <p className="text-gray-400 text-center py-8">No requests yet.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm text-left">
-                <thead>
-                  <tr className="bg-green-50">
-                    <th className="py-2 px-4 font-medium text-green-900">
-                      Product Name
-                    </th>
-                    <th className="py-2 px-4 font-medium text-green-900">
-                      Seller
-                    </th>
-                    <th className="py-2 px-4"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {productsToApprove.map((product) => (
-                    <tr
-                      key={product.product_id}
-                      className="hover:bg-green-50 transition"
-                    >
-                      <td className="py-2 px-4">{product.product_name}</td>
-                      <td className="py-2 px-4">{product.seller_name}</td>
-                      <td className="py-2 px-4">
-                        <button
-                          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded shadow transition"
-                          // Add your approve handler here
-                        >
-                          Approve
-                        </button>
-                      </td>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+          {/* Delivery Company Verification Requests */}
+          <div className={cardClass + " border-blue-200"}>
+            <h2 className={sectionTitle + " text-blue-700"}>
+              <span className={badgeClass + " bg-gradient-to-br from-blue-400 to-blue-600"}></span>
+              Delivery Company Verification
+            </h2>
+            {deliveryCompany.length === 0 ? (
+              <p className={emptyClass}>No requests yet.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-base text-left rounded-xl overflow-hidden shadow">
+                  <thead>
+                    <tr>
+                      <th className={tableHeadClass + " text-blue-900"}>
+                        Company Name
+                      </th>
+                      <th className={tableHeadClass + " text-blue-900"}>
+                        Trade License
+                      </th>
+                      <th className={tableHeadClass}></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-        {/* User Verification Requests */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 border border-purple-100">
-          <h2 className="text-2xl font-semibold mb-6 text-purple-700 flex items-center gap-2">
-            <span className="inline-block w-2 h-2 bg-purple-500 rounded-full"></span>
-            User Verification Requests
-          </h2>
-          {usersToVerify.length === 0 ? (
-            <p className="text-gray-400 text-center py-8">No requests yet.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm text-left">
-                <thead>
-                  <tr className="bg-purple-50">
-                    <th className="py-2 px-4 font-medium text-purple-900">
-                      User Name
-                    </th>
-                    <th className="py-2 px-4 font-medium text-purple-900">
-                      Email
-                    </th>
-                    <th className="py-2 px-4 font-medium text-purple-900">
-                      Phone
-                    </th>
-                    <th className="py-2 px-4"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {usersToVerify.map((user) => (
-                    <tr
-                      key={user.user_id}
-                      className="hover:bg-purple-50 transition"
-                    >
-                      <td className="py-2 px-4">{user.name}</td>
-                      <td className="py-2 px-4">{user.email}</td>
-                      <td className="py-2 px-4">{user.phone}</td>
-                      <td className="py-2 px-4">
-                        <button
-                          className="bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded shadow transition"
-                          onClick={() => handleVerifyUser(user.user_id)}
-                        >
-                          Verify
-                        </button>
-                      </td>
+                  </thead>
+                  <tbody>
+                    {deliveryCompany.map((company) => (
+                      <tr
+                        key={company.company_id}
+                        className="hover:bg-blue-50/80 transition"
+                      >
+                        <td className="py-3 px-5 font-medium">{company.company_name}</td>
+                        <td className="py-3 px-5">{company.trade_license}</td>
+                        <td className="py-3 px-5">
+                          <button
+                            className={btnClass}
+                            onClick={() =>
+                              handleVerifyCompany(company.company_id)
+                            }
+                          >
+                            <span className="inline-block align-middle text-lg">✔</span>
+                            Verify
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+          {/* Product Approval Requests */}
+          <div className={cardClass + " border-green-200"}>
+            <h2 className={sectionTitle + " text-green-700"}>
+              <span className={badgeClass + " bg-gradient-to-br from-green-400 to-green-600"}></span>
+              Product Approval Requests
+            </h2>
+            {productsToApprove.length === 0 ? (
+              <p className={emptyClass}>No requests yet.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-base text-left rounded-xl overflow-hidden shadow">
+                  <thead>
+                    <tr>
+                      <th className={tableHeadClass + " text-green-900"}>
+                        Product ID
+                      </th>
+                      <th className={tableHeadClass + " text-green-900"}>
+                        Title
+                      </th>
+                      <th className={tableHeadClass + " text-green-900"}>
+                        Price
+                      </th>
+                      <th className={tableHeadClass}></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                  </thead>
+                  <tbody>
+                    {productsToApprove.map((product) => (
+                      <tr
+                        key={product.product_id}
+                        className="hover:bg-green-50/80 transition"
+                      >
+                        <td className="py-3 px-5 font-medium">{product.product_id}</td>
+                        <td className="py-3 px-5">{product.title}</td>
+                        <td className="py-3 px-5">${product.price}</td>
+                        <td className="py-3 px-5">
+                          <button
+                            className={btnClass.replace(
+                              "from-green-400 to-green-600",
+                              "from-blue-400 to-blue-600"
+                            )}
+                            onClick={() =>
+                              handleVerifyProduct(product.product_id)
+                            }
+                          >
+                            <span className="inline-block align-middle text-lg">✔</span>
+                            Verify
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+          {/* User Verification Requests */}
+          <div className={cardClass + " border-purple-200"}>
+            <h2 className={sectionTitle + " text-purple-700"}>
+              <span className={badgeClass + " bg-gradient-to-br from-purple-400 to-purple-600"}></span>
+              User Verification Requests
+            </h2>
+            {usersToVerify.length === 0 ? (
+              <p className={emptyClass}>No requests yet.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-base text-left rounded-xl overflow-hidden shadow">
+                  <thead>
+                    <tr>
+                      <th className={tableHeadClass + " text-purple-900"}>
+                        User Name
+                      </th>
+                      <th className={tableHeadClass + " text-purple-900"}>
+                        Email
+                      </th>
+                      <th className={tableHeadClass + " text-purple-900"}>
+                        Phone
+                      </th>
+                      <th className={tableHeadClass}></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {usersToVerify.map((user) => (
+                      <tr
+                        key={user.user_id}
+                        className="hover:bg-purple-50/80 transition"
+                      >
+                        <td className="py-3 px-5 font-medium">{user.name}</td>
+                        <td className="py-3 px-5">{user.email}</td>
+                        <td className="py-3 px-5">{user.phone}</td>
+                        <td className="py-3 px-5">
+                          <button
+                            className={btnClass}
+                            onClick={() => handleVerifyUser(user.user_id)}
+                          >
+                            <span className="inline-block align-middle text-lg">✔</span>
+                            Verify
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
