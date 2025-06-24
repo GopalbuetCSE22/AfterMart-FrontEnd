@@ -1,13 +1,15 @@
 import React, { useState } from "react";
 import axios from "axios";
-
+import { useNavigate } from "react-router-dom";
 function DelivaryServiceLogin() {
-  const [formdata, setFormData] = useState({ companyName: "", tradeLicense: "" });
+  const [formdata, setFormData] = useState({
+    companyName: "",
+    tradeLicense: "",
+  });
   const [message, setMessage] = useState("");
-
+  const navigate = useNavigate();
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       const response = await axios.post(
         "http://localhost:5000/api/auth/delivaryServicelogin",
@@ -16,8 +18,12 @@ function DelivaryServiceLogin() {
       const { token } = response.data;
       localStorage.setItem("authToken", token);
       setMessage("Login successful!");
+      
+      console.log("Login response:", response.data);
+      localStorage.setItem("company_id" , response.data.company_id);
+
       setFormData({ companyName: "", tradeLicense: "" });
-      // navigate("/protected-data"); // Uncomment if you want to redirect
+      navigate("/deliveryServiceDashboard");
     } catch (error) {
       console.error("Error during login:", error);
       setMessage("Invalid username or password");
@@ -32,7 +38,9 @@ function DelivaryServiceLogin() {
           placeholder="companyName"
           className="border border-gray-300 p-2 rounded"
           value={formdata.companyName}
-          onChange={(e) => setFormData({ ...formdata, companyName: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formdata, companyName: e.target.value })
+          }
           required
         />
         <input
@@ -51,7 +59,10 @@ function DelivaryServiceLogin() {
         >
           Login
         </button>
-        <a href="/delivaryServiceRegister" className="text-blue-500 hover:underline">
+        <a
+          href="/delivaryServiceRegister"
+          className="text-blue-500 hover:underline"
+        >
           Don't have an account? Register here
         </a>
         <a href="/" className="text-blue-500 hover:underline">

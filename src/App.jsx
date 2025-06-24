@@ -12,6 +12,8 @@ import DelivaryServiceLogin from "./pages/LoginCatagoryPages/DelivaryServiceLogi
 import DelivaryServiceRegisterPage from "./pages/RegisterCatagoryPages/DelivaryServiceRegisterPage";
 import AdminDashBoard from "./pages/DashBoard/AdminDashBoard";
 import UserDashBoard from "./pages/DashBoard/UserDashBoard";
+import DeliveryServiceDashBoard from "./pages/DashBoard/DeliveryServiceDashBoard";
+import DeliveryManDashBoard from "./pages/DashBoard/DeliveryManDashBoard";
 
 function App() {
   console.log(supabase);
@@ -38,8 +40,17 @@ function App() {
         <Route path="/delivaryManlogin" element={<DelivaryManLogin />} />
 
         {/* Dashboard */}
+
         <Route path="/adminDashboard" element={<AdminDashBoard />} />
         <Route path="/userDashboard" element={<UserDashBoard />} />
+        <Route
+          path="/deliveryServiceDashboard"
+          element={<DeliveryServiceDashBoard />}
+        />
+        <Route
+          path="/deliveryManDashboard"
+          element={<DeliveryManDashBoard />}
+        />
       </Routes>
     </BrowserRouter>
   );

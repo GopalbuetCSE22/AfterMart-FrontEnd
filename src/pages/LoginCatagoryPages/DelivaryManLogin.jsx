@@ -1,23 +1,24 @@
 import React, { useState } from "react";
 import axios from "axios";
-
+import { useNavigate } from "react-router-dom";
 function DelivaryManLogin() {
   const [formdata, setFormData] = useState({ email: "", password: "" });
   const [message, setMessage] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/auth/delivarymanlogin",
+        "http://localhost:5000/api/auth/deliveryManlogin",
         formdata
       );
       const { token } = response.data;
       localStorage.setItem("authToken", token);
       setMessage("Login successful!");
       setFormData({ email: "", password: "" });
-      // navigate("/protected-data"); // Uncomment if you want to redirect
+      localStorage.setItem("deliveryman_id", response.data.deliveryman_id);
+      navigate("/deliveryManDashboard");
     } catch (error) {
       console.error("Error during login:", error);
       setMessage("Invalid username or password");
