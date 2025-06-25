@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function AdminLogin() {
   const [formdata, setFormData] = useState({ email: "", password: "" });
@@ -18,13 +18,8 @@ function AdminLogin() {
       localStorage.setItem("authToken", token);
       setMessage("Login successful!");
       setFormData({ email: "", password: "" });
-      
       localStorage.setItem("admin_id", response.data.admin_id);
-      // // After successful login ,store the admin_id in localStorage for later use
-      // localStorage.setItem("admin_id", response.data.admin_id);
-      // console.log("Admin ID:", response.data.admin_id);
-
-      navigate("/adminDashboard"); // Uncomment if you want to redirect
+      navigate("/adminDashboard");
     } catch (error) {
       console.error("Error during login:", error);
       setMessage("Invalid username or password");
@@ -32,12 +27,16 @@ function AdminLogin() {
   };
 
   return (
-    <div>
-      <form className="flex flex-col space-y-4" onSubmit={handleSubmit}>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <form
+        className="flex flex-col space-y-5 bg-gray-900 bg-opacity-95 p-10 rounded-xl shadow-2xl w-full max-w-md"
+        onSubmit={handleSubmit}
+      >
+        <h2 className="text-3xl font-bold text-center text-gray-100 mb-6">Admin Login</h2>
         <input
           type="email"
           placeholder="Email"
-          className="border border-gray-300 p-2 rounded"
+          className="border border-gray-700 bg-gray-800 text-gray-100 p-3 rounded focus:outline-none focus:ring-2 focus:ring-blue-700 transition"
           value={formdata.email}
           onChange={(e) => setFormData({ ...formdata, email: e.target.value })}
           required
@@ -45,7 +44,7 @@ function AdminLogin() {
         <input
           type="password"
           placeholder="Password"
-          className="border border-gray-300 p-2 rounded"
+          className="border border-gray-700 bg-gray-800 text-gray-100 p-3 rounded focus:outline-none focus:ring-2 focus:ring-blue-700 transition"
           value={formdata.password}
           onChange={(e) =>
             setFormData({ ...formdata, password: e.target.value })
@@ -54,15 +53,19 @@ function AdminLogin() {
         />
         <button
           type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300"
+          className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800 transition duration-300 font-semibold shadow"
         >
           Login
         </button>
-
-        <a href="/" className="text-blue-500 hover:underline">
+        <a
+          href="/"
+          className="text-blue-400 hover:underline text-center transition"
+        >
           Back to Home
         </a>
-        {message && <p className="text-center text-red-500">{message}</p>}
+        {message && (
+          <p className="text-center text-red-400 font-medium">{message}</p>
+        )}
       </form>
     </div>
   );

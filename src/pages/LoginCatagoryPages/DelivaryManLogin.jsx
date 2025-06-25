@@ -26,12 +26,18 @@ function DelivaryManLogin() {
   };
 
   return (
-    <div>
-      <form className="flex flex-col space-y-4" onSubmit={handleSubmit}>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <form
+        className="flex flex-col space-y-5 bg-gray-900 p-10 rounded-xl shadow-2xl w-full max-w-md border border-gray-800"
+        onSubmit={handleSubmit}
+      >
+        <h2 className="text-2xl font-bold text-gray-100 mb-4 text-center">
+          Delivery Man Login
+        </h2>
         <input
           type="email"
           placeholder="Email"
-          className="border border-gray-300 p-2 rounded"
+          className="border border-gray-700 bg-gray-800 text-gray-100 p-3 rounded focus:outline-none focus:ring-2 focus:ring-blue-700 transition"
           value={formdata.email}
           onChange={(e) => setFormData({ ...formdata, email: e.target.value })}
           required
@@ -39,7 +45,7 @@ function DelivaryManLogin() {
         <input
           type="password"
           placeholder="Password"
-          className="border border-gray-300 p-2 rounded"
+          className="border border-gray-700 bg-gray-800 text-gray-100 p-3 rounded focus:outline-none focus:ring-2 focus:ring-blue-700 transition"
           value={formdata.password}
           onChange={(e) =>
             setFormData({ ...formdata, password: e.target.value })
@@ -48,15 +54,28 @@ function DelivaryManLogin() {
         />
         <button
           type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300"
+          className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800 transition duration-300 font-semibold shadow"
         >
           Login
         </button>
 
-        <a href="/" className="text-blue-500 hover:underline">
+        <a
+          href="/"
+          className="text-blue-400 hover:underline text-center transition"
+        >
           Back to Home
         </a>
-        {message && <p className="text-center text-red-500">{message}</p>}
+        {message && (
+          <p
+            className={`text-center ${
+              message === "Login successful!"
+                ? "text-green-400"
+                : "text-red-400"
+            }`}
+          >
+            {message}
+          </p>
+        )}
       </form>
     </div>
   );
