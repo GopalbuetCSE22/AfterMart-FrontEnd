@@ -18,10 +18,8 @@ function DelivaryServiceLogin() {
       const { token } = response.data;
       localStorage.setItem("authToken", token);
       setMessage("Login successful!");
-      
       console.log("Login response:", response.data);
-      localStorage.setItem("company_id" , response.data.company_id);
-
+      localStorage.setItem("company_id", response.data.company_id);
       setFormData({ companyName: "", tradeLicense: "" });
       navigate("/deliveryServiceDashboard");
     } catch (error) {
@@ -31,12 +29,18 @@ function DelivaryServiceLogin() {
   };
 
   return (
-    <div>
-      <form className="flex flex-col space-y-4" onSubmit={handleSubmit}>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <form
+        className="flex flex-col space-y-5 bg-gray-900 bg-opacity-95 p-10 rounded-xl shadow-2xl w-full max-w-md"
+        onSubmit={handleSubmit}
+      >
+        <h2 className="text-3xl font-bold text-white mb-6 text-center">
+          Delivery Service Login
+        </h2>
         <input
           type="text"
-          placeholder="companyName"
-          className="border border-gray-300 p-2 rounded"
+          placeholder="Company Name"
+          className="border border-gray-700 bg-gray-800 text-white p-3 rounded focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
           value={formdata.companyName}
           onChange={(e) =>
             setFormData({ ...formdata, companyName: e.target.value })
@@ -45,8 +49,8 @@ function DelivaryServiceLogin() {
         />
         <input
           type="text"
-          placeholder="tradeLicense"
-          className="border border-gray-300 p-2 rounded"
+          placeholder="Trade License"
+          className="border border-gray-700 bg-gray-800 text-white p-3 rounded focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
           value={formdata.tradeLicense}
           onChange={(e) =>
             setFormData({ ...formdata, tradeLicense: e.target.value })
@@ -55,20 +59,25 @@ function DelivaryServiceLogin() {
         />
         <button
           type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300"
+          className="bg-blue-700 text-white px-4 py-3 rounded font-semibold hover:bg-blue-800 transition duration-300 shadow"
         >
           Login
         </button>
         <a
           href="/delivaryServiceRegister"
-          className="text-blue-500 hover:underline"
+          className="text-blue-400 hover:underline text-center"
         >
           Don't have an account? Register here
         </a>
-        <a href="/" className="text-blue-500 hover:underline">
+        <a
+          href="/"
+          className="text-gray-400 hover:text-white hover:underline text-center"
+        >
           Back to Home
         </a>
-        {message && <p className="text-center text-red-500">{message}</p>}
+        {message && (
+          <p className="text-center text-red-400 font-medium">{message}</p>
+        )}
       </form>
     </div>
   );
