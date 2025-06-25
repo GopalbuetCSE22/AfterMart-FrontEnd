@@ -161,7 +161,7 @@ const ProductDetail = () => {
                         {/* Product Details Grid */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-800 p-4 rounded-xl shadow-inner">
                             <DetailItem icon={Calendar} label="Posted On" value={new Date(product.posted_at).toLocaleDateString()} />
-                            <DetailItem icon={Clock} label="Used For" value={`${product.used_for} year(s)`} />
+                            <DetailItem icon={Clock} label="Used For" value={`${product.used_for}`} />
                             <DetailItem icon={MapPin} label="Location" value={`${product.seller_area}, ${product.seller_district}`} />
                             <DetailItem icon={Tag} label="Category" value={product.name} />
                         </div>

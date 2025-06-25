@@ -7,13 +7,22 @@ import ProductGrid from '../components/ProductGrid';
 import FilterSidebar from '../components/FilterSidebar';
 import { toast } from 'react-toastify';
 
-const PORT = 5000;
+const PORT = 5000; // Define your backend port here
 
+/**
+ * SearchResultPage component displays products based on search queries and filters.
+ * It manages search parameters from the URL, fetches products, and updates the URL
+ * when filters are applied.
+ */
 const SearchResultPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    //url query to search params converter
+    /**
+     * Parses URL query parameters into a searchParams object.
+     * Uses useCallback to memoize the function, only recreating if location.search changes.
+     * @returns {object} An object containing parsed search parameters.
+     */
     const parseQueryParams = useCallback(() => {
         const params = new URLSearchParams(location.search);
         return {
@@ -24,15 +33,14 @@ const SearchResultPage = () => {
             usedFor: params.get('usedFor') || null,
             division: params.get('division') || null,
             district: params.get('district') || null,
-            ward: params.get('ward') || null,
-            area: params.get('area') || null,
+            ward: params.get('ward') || null, // Corresponds to Upazila
+            area: params.get('area') || null, // Corresponds to Union
             userId: localStorage.getItem('user_id') || null,
         };
     }, [location.search]); // Dependent on location.search, will re-create if URL changes
 
     // State for all search and filter parameters.
-    // Initialize DIRECTLY using the parseQueryParams function.
-    // This ensures searchParams immediately reflects the URL on component mount/re-mount.
+    // Initialize DIRECTLY using the parseQueryParams function to reflect URL on mount.
     const [searchParams, setSearchParams] = useState(parseQueryParams);
 
     // State for fetched products, loading, and error
@@ -44,14 +52,16 @@ const SearchResultPage = () => {
     const [availableCategories, setAvailableCategories] = useState([]);
 
     // --- Effect: Re-sync searchParams state from URL when location.search changes ---
-    // This handles cases like back/forward browser navigation.
+    // This handles cases like back/forward browser navigation where the URL changes
+    // without a direct filter interaction in the app.
     useEffect(() => {
         const currentParams = parseQueryParams();
         // Only update state if parameters have actually changed to avoid unnecessary re-renders
+        // Using JSON.stringify for a deep comparison, assuming simple objects.
         if (JSON.stringify(searchParams) !== JSON.stringify(currentParams)) {
             setSearchParams(currentParams);
         }
-    }, [location.search, parseQueryParams, searchParams]); // Dependency on searchParams to prevent infinite loop
+    }, [location.search, parseQueryParams]); // Removed searchParams from dependencies here
 
     // --- Effect: Fetch all categories for the filter sidebar dropdown ---
     useEffect(() => {
@@ -62,19 +72,20 @@ const SearchResultPage = () => {
                 setAvailableCategories(res.data);
             } catch (err) {
                 console.error("Error fetching all categories for filters:", err);
-                // toast.error("Could not load category filter options.");
+                // toast.error("Could not load category filter options."); // Uncomment if you want user notification
             }
         };
         fetchAllCategories();
-    }, []);
+    }, []); // Runs once on component mount
 
     // --- Effect: Fetch products based on current searchParams state ---
+    // This effect runs whenever searchParams changes, triggering a new product fetch.
     useEffect(() => {
-        // This effect runs whenever searchParams changes.
         const fetchProducts = async () => {
             setLoading(true);
             setError(null); // Clear previous errors
 
+            // Construct API parameters from current searchParams state
             const queryApiParams = {
                 q: searchParams.q,
                 userId: searchParams.userId,
@@ -96,15 +107,17 @@ const SearchResultPage = () => {
                 // Assuming backend response is { products: [], proximityUsed: boolean }
                 setProducts(res.data.products);
 
-                // Set error message if no products are found based on the search criteria
-                // Only show "No results found" if *some* filter was applied, otherwise "No products available"
-                const hasActiveFilters = Object.values(searchParams).some(value =>
-                    value !== '' && value !== null && value !== 0 && value !== 10000000
+                // Determine appropriate error message if no products are found
+                const hasActiveFilters = Object.entries(searchParams).some(([key, value]) =>
+                    // Exclude 'q' and 'userId' if empty, and default price values
+                    (key !== 'q' && key !== 'userId' && value !== null && value !== '' && value !== 0 && value !== 10000000) ||
+                    // Include 'q' if it has a value
+                    (key === 'q' && value !== '')
                 );
 
                 if (res.data.products.length === 0) {
                     if (hasActiveFilters) {
-                        setError("0 Products found");
+                        setError("0 Products found with the applied filters.");
                     } else {
                         setError("No products available."); // If no filters, and still empty
                     }
@@ -125,6 +138,8 @@ const SearchResultPage = () => {
     }, [searchParams]); // Depend on searchParams, so it refetches when filters or query change
 
     // --- Effect: Update URL query parameters based on searchParams state (with debounce) ---
+    // This effect ensures the URL reflects the current filter state,
+    // with a debounce to prevent excessive URL updates during rapid typing/selection.
     useEffect(() => {
         const updateUrl = () => {
             const params = new URLSearchParams();
@@ -140,6 +155,7 @@ const SearchResultPage = () => {
             if (searchParams.area) params.set('area', searchParams.area);
             if (searchParams.userId) params.set('userId', searchParams.userId); // userId should always be passed if available
 
+            // Use navigate with replace: true to prevent adding multiple history entries
             navigate(`?${params.toString()}`, { replace: true });
         };
 
@@ -148,11 +164,17 @@ const SearchResultPage = () => {
         }, 300); // Debounce: wait 300ms before updating URL
 
         return () => {
-            clearTimeout(handler);
+            clearTimeout(handler); // Cleanup the timeout if searchParams changes before the delay
         };
-    }, [searchParams, navigate]);
+    }, [searchParams, navigate]); // Depend on searchParams, so it triggers when filters change
 
-    // --- Handler for filter changes from the sidebar ---
+    /**
+     * Handler for filter changes from the sidebar.
+     * Updates the searchParams state, and resets dependent address fields if a higher-level
+     * address filter is changed (e.g., changing division resets district, ward, and area).
+     * @param {string} filterName - The name of the filter to update (e.g., 'category', 'division').
+     * @param {any} value - The new value for the filter.
+     */
     const handleFilterChange = (filterName, value) => {
         setSearchParams(prevParams => {
             const newParams = { ...prevParams, [filterName]: value };
@@ -174,7 +196,7 @@ const SearchResultPage = () => {
 
     // --- Render Logic ---
     return (
-        <div className="flex flex-col min-h-screen bg-slate-900 text-white">
+        <div className="flex flex-col min-h-screen bg-slate-900 text-white font-inter">
             <Header />
 
             <main className="flex-grow px-4 py-8 container mx-auto">
@@ -193,7 +215,7 @@ const SearchResultPage = () => {
                             {searchParams.q && ` for '${searchParams.q}'`}
                             {searchParams.category && ` in '${searchParams.category}' category`}
                             {(searchParams.division || searchParams.district || searchParams.ward || searchParams.area) &&
-                                ` near ${[searchParams.area, searchParams.ward, searchParams.district, searchParams.division]
+                                ` near ${[searchParams.area, searchParams.division, searchParams.district, searchParams.ward]
                                     .filter(Boolean)
                                     .reverse() // Display from broader to specific location for readability
                                     .join(', ')}`}

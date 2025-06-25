@@ -2,13 +2,20 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { ChevronDown, ChevronUp, SlidersHorizontal } from 'lucide-react';
 
+// Reverted to the original and correct base URL for the bdapi.vercel.app API
 const BDAPI_BASE_URL = 'https://bdapi.vercel.app/api/v.1';
 
+/**
+ * FilterSidebar component for applying various search filters.
+ * It manages local UI states for dropdowns and fetches location data
+ * from the BDAPI. It communicates filter changes up to its parent via onFilterChange.
+ *
+ * @param {object} props - The component props.
+ * @param {object} props.searchParams - Current search parameters from the parent.
+ * @param {function} props.onFilterChange - Callback to update filter parameters in the parent.
+ * @param {Array<object>} props.availableCategories - List of available product categories.
+ */
 const FilterSidebar = ({ searchParams, onFilterChange, availableCategories }) => {
-    // Local state for price inputs to allow users to type before applying the filter
-    const [minPriceInput, setMinPriceInput] = useState(searchParams.minPrice === 0 ? '' : searchParams.minPrice);
-    const [maxPriceInput, setMaxPriceInput] = useState(searchParams.maxPrice === 10000000 ? '' : searchParams.maxPrice);
-
     // States for cascaded address dropdown options
     // These will store objects like { id: '...', name: '...' }
     const [availableDivisions, setAvailableDivisions] = useState([]);
@@ -16,23 +23,19 @@ const FilterSidebar = ({ searchParams, onFilterChange, availableCategories }) =>
     const [availableWards, setAvailableWards] = useState([]); // Upazilas mapped to Wards
     const [availableAreas, setAvailableAreas] = useState([]); // Unions mapped to Areas
 
+    // UI state for collapsing/expanding filter sections
     const [isCategoryOpen, setIsCategoryOpen] = useState(true);
     const [isPriceOpen, setIsPriceOpen] = useState(true);
     const [isUsageOpen, setIsUsageOpen] = useState(true);
     const [isAddressOpen, setIsAddressOpen] = useState(true);
 
-    useEffect(() => {
-        // This ensures the input fields reflect the current filter values
-        setMinPriceInput(searchParams.minPrice === 0 ? '' : searchParams.minPrice);
-        setMaxPriceInput(searchParams.maxPrice === 10000000 ? '' : searchParams.maxPrice);
-    }, [searchParams.minPrice, searchParams.maxPrice]);
-
     // --- Effect: Fetch divisions on component mount ---
+    // Fetches the top-level administrative divisions of Bangladesh.
     useEffect(() => {
         const fetchDivisions = async () => {
             try {
                 console.log("Fetching divisions from BDAPI...");
-                const res = await axios.get(`${BDAPI_BASE_URL}/division`);
+                const res = await axios.get(`${BDAPI_BASE_URL}/division`); // Original endpoint, works for divisions
                 console.log("BDAPI /division full response:", res.data);
 
                 if (res.data && Array.isArray(res.data.data)) {
@@ -49,6 +52,7 @@ const FilterSidebar = ({ searchParams, onFilterChange, availableCategories }) =>
     }, []); // Runs once on mount
 
     // --- Effect: Fetch districts when division changes in searchParams ---
+    // Fetches districts based on the currently selected division.
     useEffect(() => {
         // Clear dependent dropdowns if division is unselected or no divisions are available yet
         if (!searchParams.division || availableDivisions.length === 0) {
@@ -58,15 +62,15 @@ const FilterSidebar = ({ searchParams, onFilterChange, availableCategories }) =>
             return;
         }
 
-        // Find the ID of the selected division name
+        // Find the ID of the selected division name to fetch its districts
         const selectedDivision = availableDivisions.find(div => div.name === searchParams.division);
         console.log("Selected division for district fetch:", searchParams.division, "found ID:", selectedDivision?.id);
-
 
         if (selectedDivision) {
             const fetchDistricts = async () => {
                 try {
                     console.log(`Fetching districts for division ID: ${selectedDivision.id}...`);
+                    // Original endpoint, works for districts
                     const res = await axios.get(`${BDAPI_BASE_URL}/district/${selectedDivision.id}`);
                     console.log("BDAPI /district full response:", res.data);
                     if (res.data && Array.isArray(res.data.data)) {
@@ -83,9 +87,10 @@ const FilterSidebar = ({ searchParams, onFilterChange, availableCategories }) =>
         } else {
             setAvailableDistricts([]);
         }
-    }, [searchParams.division, availableDivisions]);
+    }, [searchParams.division, availableDivisions]); // Re-runs when selected division or available divisions change
 
     // --- Effect: Fetch wards (upazilas) when district changes in searchParams ---
+    // Fetches upazilas (wards) based on the currently selected district.
     useEffect(() => {
         // Clear dependent dropdowns if district is unselected or no districts are available yet
         if (!searchParams.district || availableDistricts.length === 0) {
@@ -94,15 +99,15 @@ const FilterSidebar = ({ searchParams, onFilterChange, availableCategories }) =>
             return;
         }
 
-        // Find the ID of the selected district name
+        // Find the ID of the selected district name to fetch its upazilas
         const selectedDistrict = availableDistricts.find(dist => dist.name === searchParams.district);
         console.log("Selected district for ward fetch:", searchParams.district, "found ID:", selectedDistrict?.id);
-
 
         if (selectedDistrict) {
             const fetchWards = async () => {
                 try {
                     console.log(`Fetching wards (upazilas) for district ID: ${selectedDistrict.id}...`);
+                    // Original endpoint, works for upazilas
                     const res = await axios.get(`${BDAPI_BASE_URL}/upazilla/${selectedDistrict.id}`);
                     console.log("BDAPI /upazilla full response:", res.data); // Log full response
                     if (res.data && Array.isArray(res.data.data)) {
@@ -119,9 +124,10 @@ const FilterSidebar = ({ searchParams, onFilterChange, availableCategories }) =>
         } else {
             setAvailableWards([]);
         }
-    }, [searchParams.district, availableDistricts]);
+    }, [searchParams.district, availableDistricts]); // Re-runs when selected district or available districts change
 
     // --- Effect: Fetch areas (unions) when ward (upazila) changes in searchParams ---
+    // Fetches unions (areas) based on the currently selected upazila.
     useEffect(() => {
         // Clear dependent dropdowns if ward is unselected or no wards are available yet
         if (!searchParams.ward || availableWards.length === 0) {
@@ -129,21 +135,21 @@ const FilterSidebar = ({ searchParams, onFilterChange, availableCategories }) =>
             return;
         }
 
-        // Find the ID of the selected ward (upazila) name
+        // Find the ID of the selected ward (upazila) name to fetch its unions
         const selectedWard = availableWards.find(w => w.name === searchParams.ward);
         console.log("Selected ward for area fetch:", searchParams.ward, "found ID:", selectedWard?.id);
-
 
         if (selectedWard) {
             const fetchAreas = async () => {
                 try {
                     console.log(`Fetching areas (unions) for ward ID: ${selectedWard.id}...`);
-                    const res = await axios.get(`${BDAPI_BASE_URL}/unions/${selectedWard.id}`);
-                    console.log("BDAPI /unions full response:", res.data);
+                    // CORRECTED ENDPOINT for unions based on bdapi.vercel.app homepage documentation
+                    const res = await axios.get(`${BDAPI_BASE_URL}/union/${selectedWard.id}`);
+                    console.log("BDAPI /union full response:", res.data);
                     if (res.data && Array.isArray(res.data.data)) {
                         setAvailableAreas(res.data.data);
                     } else {
-                        console.error("BDAPI /unions endpoint did not return expected data.data array for upazila ID", selectedWard.id, ":", res.data);
+                        console.error("BDAPI /union endpoint did not return expected data.data array for upazila ID", selectedWard.id, ":", res.data);
                         setAvailableAreas([]);
                     }
                 } catch (err) {
@@ -154,24 +160,16 @@ const FilterSidebar = ({ searchParams, onFilterChange, availableCategories }) =>
         } else {
             setAvailableAreas([]);
         }
-    }, [searchParams.ward, availableWards]);
+    }, [searchParams.ward, availableWards]); // Re-runs when selected ward or available wards change
 
-    // --- Handler: Apply price filter when inputs lose focus ---
-    const handlePriceApply = () => {
-        const parsedMin = parseFloat(minPriceInput);
-        const parsedMax = parseFloat(maxPriceInput);
-
-        onFilterChange('minPrice', isNaN(parsedMin) ? 0 : parsedMin);
-        onFilterChange('maxPrice', isNaN(parsedMax) ? 10000000 : parsedMax);
-    };
-
+    // Options for the 'Used For' filter
     const usageOptions = [
         { label: 'Any', value: null },
-        { label: 'New', value: 'new' },
-        { label: 'Used - Less than 1 year', value: 'less_than_1_year' },
-        { label: 'Used - 1 to 3 years', value: '1_3_years' },
-        { label: 'Used - 3 to 5 years', value: '3_5_years' },
-        { label: 'Used - More than 5 years', value: 'more_than_5_years' },
+        { label: 'New', value: 'New' },
+        { label: 'Used- Less than 1 year', value: 'Used- Less than 1 year' },
+        { label: 'Used- 1 to 3 years', value: 'Used- 1 to 3 years' },
+        { label: 'Used- 3 to 5 years', value: 'Used- 3 to 5 years' },
+        { label: 'Used- More than 5 years', value: 'Used- More than 5 years' },
     ];
 
     return (
@@ -193,7 +191,7 @@ const FilterSidebar = ({ searchParams, onFilterChange, availableCategories }) =>
                         onChange={(e) => onFilterChange('category', e.target.value === '' ? null : e.target.value)}
                     >
                         <option value="">All Categories</option>
-                        { }
+                        {/* Ensure availableCategories is an array before mapping */}
                         {(Array.isArray(availableCategories) ? availableCategories : []).map(cat => (
                             <option key={cat.category_id} value={cat.name}>
                                 {cat.name}
@@ -215,19 +213,17 @@ const FilterSidebar = ({ searchParams, onFilterChange, availableCategories }) =>
                             type="number"
                             placeholder="Min"
                             className="w-1/2 bg-slate-700 border border-slate-600 rounded-lg p-2 text-white text-sm focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                            value={minPriceInput}
-                            onChange={(e) => setMinPriceInput(e.target.value)}
-                            onBlur={handlePriceApply} // Apply when input loses focus
-                            onKeyPress={(e) => { if (e.key === 'Enter') handlePriceApply(); }} // Also apply on Enter key
+                            // Directly bind value to searchParams and call onFilterChange immediately
+                            value={searchParams.minPrice === 0 ? '' : searchParams.minPrice}
+                            onChange={(e) => onFilterChange('minPrice', parseFloat(e.target.value) || 0)}
                         />
                         <input
                             type="number"
                             placeholder="Max"
                             className="w-1/2 bg-slate-700 border border-slate-600 rounded-lg p-2 text-white text-sm focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                            value={maxPriceInput}
-                            onChange={(e) => setMaxPriceInput(e.target.value)}
-                            onBlur={handlePriceApply} // Apply when input loses focus
-                            onKeyPress={(e) => { if (e.key === 'Enter') handlePriceApply(); }} // Also apply on Enter key
+                            // Directly bind value to searchParams and call onFilterChange immediately
+                            value={searchParams.maxPrice === 10000000 ? '' : searchParams.maxPrice}
+                            onChange={(e) => onFilterChange('maxPrice', parseFloat(e.target.value) || 10000000)}
                         />
                     </div>
                 )}
@@ -269,7 +265,6 @@ const FilterSidebar = ({ searchParams, onFilterChange, availableCategories }) =>
                             onChange={(e) => onFilterChange('division', e.target.value === '' ? null : e.target.value)}
                         >
                             <option value="">Select Division</option>
-                            {/* console.log availableDivisions right before map */}
                             {console.log("Rendering Divisions (from state):", availableDivisions)}
                             {(Array.isArray(availableDivisions) ? availableDivisions : []).map(div => (
                                 <option key={div.id} value={div.name}> {/* Use name as value to send to backend */}
