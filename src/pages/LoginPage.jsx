@@ -1,54 +1,152 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { FaUser, FaUserShield, FaTruckMoving, FaPeopleCarry } from "react-icons/fa";
 
 function LoginPage() {
   const navigate = useNavigate();
+
+  // Animation variants for the card (for a smooth entrance)
+  const cardVariants = {
+    hidden: { y: 50, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 80, // Soft spring for a smooth feel
+        damping: 15,
+        delay: 0.2,
+        when: "beforeChildren",
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  // Animation variants for the buttons (for a staggered entrance)
+  const buttonVariants = {
+    hidden: { scale: 0.8, opacity: 0 },
+    visible: { scale: 1, opacity: 1, transition: { type: "spring", stiffness: 100, damping: 12 } },
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-100 via-purple-100 to-yellow-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">
-      <div className="bg-white dark:bg-gray-900 p-10 rounded-2xl shadow-2xl w-full max-w-md border border-gray-200 dark:border-gray-700 transition-colors duration-300">
-        <h1 className="text-3xl font-extrabold mb-8 text-center text-gray-800 dark:text-gray-100 tracking-tight">
-          Welcome Back!
-        </h1>
-        <div className="space-y-4">
-          <button
-            className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold shadow hover:bg-blue-700 hover:scale-105 transition-all duration-200 dark:bg-blue-700 dark:hover:bg-blue-800"
-            onClick={() => navigate("/userlogin")}
-          >
-            Login as User
-          </button>
-          <button
-            className="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-semibold shadow hover:bg-green-700 hover:scale-105 transition-all duration-200 dark:bg-green-700 dark:hover:bg-green-800"
-            onClick={() => navigate("/adminlogin")}
-          >
-            Login as Admin
-          </button>
-          <button
-            className="w-full bg-yellow-500 text-white py-3 px-4 rounded-lg font-semibold shadow hover:bg-yellow-600 hover:scale-105 transition-all duration-200 dark:bg-yellow-600 dark:hover:bg-yellow-700"
-            onClick={() => navigate("/delivaryServicelogin")}
-          >
-            Login as Delivery Service
-          </button>
-          <button
-            className="w-full bg-purple-600 text-white py-3 px-4 rounded-lg font-semibold shadow hover:bg-purple-700 hover:scale-105 transition-all duration-200 dark:bg-purple-700 dark:hover:bg-purple-800"
-            onClick={() => navigate("/delivaryManlogin")}
-          >
-            Login as Delivery Man
-          </button>
-        </div>
-        <div className="mt-8 flex justify-center">
-          <span className="text-gray-400 dark:text-gray-500 text-sm">
-            © AfterMart 2024
-          </span>
-        </div>
+    <div className="relative flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 overflow-hidden font-sans">
+      {/* Subtle, **Static** Background */}
+      <div className="absolute inset-0 z-0 opacity-10">
+        {/* Simple grid overlay for a futuristic feel without animation */}
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3d3LnYy5vcmcvMjAwMC9zdmciPjxlZz48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjk2MjZmIiBzdHJva2Utd2lkdGg9IjAuMiIvPjxyZWN0IHhvPSIwIiB5PSIwIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJub25lIiBzdHJva2U9IiMyOTYyNmYiIHN0cm9rZS13aWR0aD0iMC4xIi8+PC9lZz48L3N2Zz4=')] bg-repeat opacity-5"></div>
+        {/* Very subtle static radial gradient for depth */}
+        <div className="absolute inset-0 bg-radial-gradient from-transparent via-purple-900/10 to-transparent"></div>
       </div>
-      {/* Optional: Dark mode toggle for demo */}
-      {/* <button
-        className="fixed top-4 right-4 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-1 rounded shadow"
-        onClick={() => document.documentElement.classList.toggle('dark')}
+
+      {/* Glassy login card */}
+      <motion.div
+        variants={cardVariants}
+        initial="hidden"
+        animate="visible"
+        className="relative backdrop-blur-xl bg-white/5 border border-purple-500/30 p-12 rounded-3xl shadow-2xl max-w-lg w-full z-10"
       >
-        Toggle Dark Mode
-      </button> */}
+        {/* Adjusted z-index for the title and increased margin-bottom */}
+        <h1 className="relative z-10 text-3xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600 mb-12 drop-shadow-lg tracking-wide">
+          Login as
+        </h1>
+
+        {/* Grid layout for square buttons */}
+        <div className="grid grid-cols-2 gap-6">
+          <motion.div variants={buttonVariants}>
+            <LoginButton
+              label="User"
+              icon={<FaUser />}
+              onClick={() => navigate("/userlogin")}
+              baseColor="blue"
+            />
+          </motion.div>
+          <motion.div variants={buttonVariants}>
+            <LoginButton
+              label="Admin"
+              icon={<FaUserShield />}
+              onClick={() => navigate("/adminlogin")}
+              baseColor="green"
+            />
+          </motion.div>
+          <motion.div variants={buttonVariants}>
+            <LoginButton
+              label="Delivery Service"
+              icon={<FaTruckMoving />}
+              onClick={() => navigate("/delivaryServicelogin")}
+              baseColor="orange"
+            />
+          </motion.div>
+          <motion.div variants={buttonVariants}>
+            <LoginButton
+              label="Delivery Man"
+              icon={<FaPeopleCarry />}
+              onClick={() => navigate("/delivaryManlogin")}
+              baseColor="purple"
+            />
+          </motion.div>
+        </div>
+
+        <div className="mt-12 text-center text-sm text-gray-500">
+          © AfterMart 2025 - All Rights Reserved
+        </div>
+      </motion.div>
     </div>
+  );
+}
+
+function LoginButton({ label, icon, onClick, baseColor }) {
+  const colorSchemes = {
+    blue: {
+      gradient: "bg-gradient-to-br from-blue-500/10 to-blue-700/10",
+      border: "border-blue-400/30",
+      shadow: "group-hover:shadow-blue",
+    },
+    green: {
+      gradient: "bg-gradient-to-br from-green-500/10 to-green-700/10",
+      border: "border-green-400/30",
+      shadow: "group-hover:shadow-green",
+    },
+    orange: {
+      gradient: "bg-gradient-to-br from-orange-500/10 to-orange-700/10",
+      border: "border-orange-400/30",
+      shadow: "group-hover:shadow-orange",
+    },
+    purple: {
+      gradient: "bg-gradient-to-br from-purple-500/10 to-purple-700/10",
+      border: "border-purple-400/30",
+      shadow: "group-hover:shadow-purple",
+    },
+  };
+
+  const scheme = colorSchemes[baseColor] || colorSchemes.blue;
+
+  return (
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={onClick}
+      className={`relative w-full flex flex-col items-center justify-center p-6
+                  backdrop-blur-md rounded-xl text-white font-semibold text-lg
+                  shadow-md transition-all duration-300 overflow-hidden group
+                  ${scheme.gradient} border ${scheme.border} ${scheme.shadow}`}
+      style={{
+        aspectRatio: '1 / 1'
+      }}
+    >
+      <motion.div
+        className="text-5xl mb-3 z-10"
+        initial={{ y: 0 }}
+        whileHover={{ y: -5 }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      >
+        {icon}
+      </motion.div>
+
+      <span className="text-center z-10">{label}</span>
+
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 transform -skew-x-12 -translate-x-full group-hover:translate-x-full z-0"></div>
+    </motion.button>
   );
 }
 
