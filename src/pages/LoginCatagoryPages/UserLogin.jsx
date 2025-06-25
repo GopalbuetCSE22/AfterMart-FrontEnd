@@ -20,9 +20,9 @@ function UserLogin() {
 
       // After successful login or registration
       localStorage.setItem("user_id", response.data.user_id); // Make sure this matches your backend response
-      
+
       setFormData({ email: "", password: "" });
-      navigate("/userDashboard");
+      navigate("/"); //to home page
       // navigate("/protected-data"); // Uncomment if you want to redirect
     } catch (error) {
       console.error("Error during login:", error);
