@@ -1,11 +1,18 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { FiStar, FiUser, FiMail, FiTruck, FiMapPin, FiBox, FiUserCheck } from "react-icons/fi";
+import {
+  FiStar,
+  FiUser,
+  FiMail,
+  FiTruck,
+  FiMapPin,
+  FiBox,
+} from "react-icons/fi";
 
 function StarRating({ rating }) {
-  // rating: number (e.g. 3.5)
-  const fullStars = Math.floor(rating);
-  const halfStar = rating % 1 >= 0.5;
+  const safeRating = typeof rating === "number" && !isNaN(rating) ? rating : 0;
+  const fullStars = Math.floor(safeRating);
+  const halfStar = safeRating % 1 >= 0.5;
   const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
   return (
     <div className="flex items-center gap-1">
@@ -25,7 +32,9 @@ function StarRating({ rating }) {
       {[...Array(emptyStars)].map((_, i) => (
         <FiStar key={"empty" + i} className="text-gray-400" />
       ))}
-      <span className="ml-2 text-yellow-300 font-semibold">{rating.toFixed(1)}</span>
+      <span className="ml-2 text-yellow-300 font-semibold">
+        {safeRating.toFixed(1)}
+      </span>
     </div>
   );
 }
@@ -60,6 +69,23 @@ function DeliveryManDashBoard() {
       .catch(() => setLoadingOrders(false));
   }, []);
 
+  // Accept order handler
+  const handleAcceptOrder = async (order, idx) => {
+    try {
+      // You should replace this with your actual backend endpoint and payload
+      await axios.post(`http://localhost:5000/api/deliveryman/accept-order`, {
+        order, // or order_id or whatever your backend expects
+      });
+      // Optionally update UI
+      const updatedOrders = [...orders];
+      updatedOrders[idx].status = "Accepted";
+      setOrders(updatedOrders);
+      alert("Order accepted!");
+    } catch (error) {
+      alert("Failed to accept order.");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-blue-950 to-blue-900 p-8">
       <div className="max-w-5xl mx-auto flex flex-col gap-10">
@@ -73,7 +99,7 @@ function DeliveryManDashBoard() {
                 <div className="w-24 h-24 rounded-full bg-blue-400 flex items-center justify-center shadow-lg border-4 border-blue-300 overflow-hidden">
                   <FiUser className="text-5xl text-white" />
                 </div>
-                <StarRating rating={profile.rating || 0} />
+                <StarRating rating={Number(profile.rating_avg) || 0} />
               </div>
               <div className="flex-1 flex flex-col gap-3 text-gray-100">
                 <div className="flex items-center gap-2">
@@ -86,20 +112,20 @@ function DeliveryManDashBoard() {
                 </div>
                 <div className="flex items-center gap-2">
                   <FiTruck className="text-blue-400" />
-                  <span className="font-semibold">Vehicle Type:</span> {profile.vehicle_type}
+                  <span className="font-semibold">Vehicle Type:</span>{" "}
+                  {profile.vehicle_type}
+                </div>
+                <div className="flex items-center gap-2">
+                  <FiTruck className="text-blue-400" />
+                  <span className="font-semibold">Deliveries:</span>{" "}
+                  {profile.delivery_count || 0}
                 </div>
                 <div className="flex items-center gap-2">
                   <FiMapPin className="text-blue-400" />
-                  <span className="font-semibold">Preferred Areas:</span>
+                  <span className="font-semibold">Preferred Area:</span>
                   <span>
-                    {Array.isArray(profile.preferred_areas)
-                      ? profile.preferred_areas.map((area, i) => (
-                          <span key={i}>
-                            {area.division}, {area.district}, {area.ward}, {area.area}
-                            {i < profile.preferred_areas.length - 1 ? "; " : ""}
-                          </span>
-                        ))
-                      : "N/A"}
+                    {profile.division}, {profile.district}, {profile.ward},{" "}
+                    {profile.area}
                   </span>
                 </div>
               </div>
@@ -123,31 +149,50 @@ function DeliveryManDashBoard() {
               <table className="w-full border border-blue-900 rounded-lg overflow-hidden shadow">
                 <thead>
                   <tr className="bg-blue-900/80">
-                    <th className="py-3 px-5 border-b text-blue-300 font-semibold">Order ID</th>
-                    <th className="py-3 px-5 border-b text-blue-300 font-semibold">Product</th>
                     <th className="py-3 px-5 border-b text-blue-300 font-semibold">
-                      <FiUserCheck className="inline mr-1" /> Buyer
+                      Buyer Name
                     </th>
                     <th className="py-3 px-5 border-b text-blue-300 font-semibold">
-                      <FiUser className="inline mr-1" /> Seller
+                      Total Price
                     </th>
-                    <th className="py-3 px-5 border-b text-blue-300 font-semibold">Status</th>
+                    <th className="py-3 px-5 border-b text-blue-300 font-semibold">
+                      Status
+                    </th>
+                    <th className="py-3 px-5 border-b text-blue-300 font-semibold">
+                      Payment Status
+                    </th>
+                    <th className="py-3 px-5 border-b text-blue-300 font-semibold">
+                      Action
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.map((order) => (
-                    <tr key={order.order_id} className="bg-blue-950/80 hover:bg-blue-900/60 transition">
-                      <td className="py-3 px-5 border-b text-gray-100">{order.order_id}</td>
-                      <td className="py-3 px-5 border-b text-gray-100">{order.product_title}</td>
+                  {orders.map((order, idx) => (
+                    <tr
+                      key={idx}
+                      className="bg-blue-950/80 hover:bg-blue-900/60 transition"
+                    >
                       <td className="py-3 px-5 border-b text-gray-100">
-                        {order.buyer_name} <br />
-                        <span className="text-xs text-blue-200">{order.buyer_email}</span>
+                        {order.name}
                       </td>
                       <td className="py-3 px-5 border-b text-gray-100">
-                        {order.seller_name} <br />
-                        <span className="text-xs text-blue-200">{order.seller_email}</span>
+                        ৳{order.total_price}
                       </td>
-                      <td className="py-3 px-5 border-b text-gray-100">{order.status}</td>
+                      <td className="py-3 px-5 border-b text-gray-100">
+                        {order.status}
+                      </td>
+                      <td className="py-3 px-5 border-b text-gray-100">
+                        {order.payment_status}
+                      </td>
+                      <td className="py-3 px-5 border-b text-gray-100">
+                        <button
+                          className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded shadow transition"
+                          onClick={() => handleAcceptOrder(order, idx)}
+                          disabled={order.status === "Accepted"}
+                        >
+                          {order.status === "Accepted" ? "Accepted" : "Accept"}
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
