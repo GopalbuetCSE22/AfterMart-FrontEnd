@@ -18,6 +18,11 @@ const PORT = 5000; // Define your backend port here
 const SearchResultPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    //pull the page attention to the top of the page when first loaded
+    useEffect(() => {
+        window.scrollTo(0, 0); // Scroll to top on component mount
+    }, []);
+
 
     /**
      * Parses URL query parameters into a searchParams object.

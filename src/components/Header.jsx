@@ -13,11 +13,15 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
+const PORT = 5000;
+
 const Header = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [searchKeyword, setSearchKeyword] = useState('');
+    const [suggestions, setSuggestions] = useState([]);
+    const [localKeywords, setLocalKeywords] = useState([]);
 
     const navigate = useNavigate();
 
@@ -47,17 +51,47 @@ const Header = () => {
         localStorage.removeItem("authToken");
         localStorage.removeItem("user_id");
         setIsLoggedIn(false);
-        navigate("/"); // Redirect to home page after logout
-        toast.info("You have been logged out."); // Notify user
+        navigate("/");
+        toast.info("You have been logged out.");
     };
 
-    // Dark mode toggle function, will do later
+    // Dark mode toggle function
     const toggleDarkMode = () => {
         setIsDarkMode(prevMode => !prevMode);
         document.documentElement.classList.toggle('dark', !isDarkMode);
     };
 
-    // Handle search submission from the header search bar
+    // Load all keywords once on mount
+    useEffect(() => {
+        const fetchInitialKeywords = async () => {
+            try {
+                const res = await fetch(`http://localhost:${PORT}/api/products/search/initialKeywords`);
+                const data = await res.json();
+                setLocalKeywords(data.keywords || []);
+            } catch (error) {
+                console.error("Failed to fetch initial keywords:", error);
+            }
+        };
+
+        fetchInitialKeywords();
+    }, []);
+
+    // Filter suggestions locally
+    useEffect(() => {
+        if (!searchKeyword.trim()) {
+            setSuggestions([]);
+            return;
+        }
+
+        const lowerInput = searchKeyword.trim().toLowerCase();
+
+        const matches = localKeywords
+            .filter(kw => kw.toLowerCase().includes(lowerInput))
+            .slice(0, 7); // limit suggestions
+
+        setSuggestions(matches);
+    }, [searchKeyword, localKeywords]);
+
     const handleSearch = (e) => {
         e.preventDefault();
 
@@ -75,19 +109,18 @@ const Header = () => {
     };
 
     const handleSellClick = (e) => {
-        e.preventDefault(); // Prevent default link navigation
+        e.preventDefault();
 
         const token = localStorage.getItem("authToken");
         const userId = localStorage.getItem("user_id");
 
         if (!token || !userId) {
-            toast.warn("Please log in to sell a product."); // User notification
-            navigate("/userlogin"); // Redirect to user login page
+            toast.warn("Please log in to sell a product.");
+            navigate("/userlogin");
         } else {
-            navigate("/sell"); // Navigate to the Product Sell page
+            navigate("/sell");
         }
     };
-
 
     return (
         <header
@@ -152,8 +185,8 @@ const Header = () => {
 
             {/* Search Bar */}
             <div className="bg-slate-800 py-3 shadow-inner">
-                <div className="container mx-auto px-4">
-                    <form onSubmit={handleSearch} className="flex items-center gap-3 max-w-2xl mx-auto bg-slate-700 rounded-full px-4 py-2 shadow-sm">
+                <div className="container mx-auto px-4 relative">
+                    <form onSubmit={handleSearch} className="flex items-center gap-3 max-w-2xl mx-auto bg-slate-700 rounded-full px-4 py-2 shadow-sm relative z-10">
                         <Search size={20} className="text-gray-300" />
                         <input
                             type="text"
@@ -161,6 +194,7 @@ const Header = () => {
                             className="flex-grow bg-transparent focus:outline-none text-white placeholder-gray-400"
                             value={searchKeyword}
                             onChange={(e) => setSearchKeyword(e.target.value)}
+                            autoComplete="off"
                         />
                         <button
                             type="submit"
@@ -169,6 +203,25 @@ const Header = () => {
                             Search
                         </button>
                     </form>
+
+                    {/* Suggestion Dropdown */}
+                    {suggestions.length > 0 && (
+                        <ul className="absolute left-1/2 transform -translate-x-1/2 mt-1 max-w-2xl w-full bg-slate-700 text-white rounded-lg shadow-lg overflow-hidden z-20 border border-slate-600">
+                            {suggestions.map((item, index) => (
+                                <li
+                                    key={index}
+                                    className="px-4 py-2 hover:bg-slate-600 cursor-pointer text-sm transition-colors"
+                                    onClick={() => {
+                                        setSuggestions([]);
+                                        navigate(`/search?q=${encodeURIComponent(item)}&userId=${localStorage.getItem("user_id") || ''}`);
+                                    }}
+
+                                >
+                                    {item}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                 </div>
             </div>
         </header>
