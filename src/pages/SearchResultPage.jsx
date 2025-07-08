@@ -6,6 +6,7 @@ import Footer from '../components/Footer';
 import ProductGrid from '../components/ProductGrid';
 import FilterSidebar from '../components/FilterSidebar';
 import { toast } from 'react-toastify';
+import { Loader, SearchX } from 'lucide-react'; // Changed Frown to SearchX
 
 const PORT = 5000; // Define your backend port here
 
@@ -106,27 +107,13 @@ const SearchResultPage = () => {
 
                 // Assuming backend response is { products: [], proximityUsed: boolean }
                 setProducts(res.data.products);
-
-                // Determine appropriate error message if no products are found
-                const hasActiveFilters = Object.entries(searchParams).some(([key, value]) =>
-                    // Exclude 'q' and 'userId' if empty, and default price values
-                    (key !== 'q' && key !== 'userId' && value !== null && value !== '' && value !== 0 && value !== 10000000) ||
-                    // Include 'q' if it has a value
-                    (key === 'q' && value !== '')
-                );
-
-                if (res.data.products.length === 0) {
-                    if (hasActiveFilters) {
-                        setError("0 Products found with the applied filters.");
-                    } else {
-                        setError("No products available."); // If no filters, and still empty
-                    }
-                } else {
-                    setError(null); // Clear error if products are found
-                }
+                // Only set error if there was a true backend error or parsing issue
+                // Do NOT set error just because products.length === 0
+                setError(null);
 
             } catch (err) {
                 console.error("Error fetching products:", err);
+                // Set error only for actual API failures (e.g., network, server issues)
                 setError("Failed to fetch products. Please try again later.");
                 toast.error("Failed to fetch search results.");
             } finally {
@@ -200,28 +187,33 @@ const SearchResultPage = () => {
             <Header />
 
             <main className="flex-grow px-4 py-8 container mx-auto">
-                {/* Search Summary Section */}
+                {/* Search Summary Section - Always displays count/summary, never the error/no results animation */}
                 <div className="text-center mb-8">
-                    {loading ? (
-                        <p className="text-xl text-gray-400">Searching products...</p>
-                    ) : error ? (
+                    {error ? (
+                        // Display a general error message if there's a backend error
                         <div className="max-w-2xl mx-auto text-center px-4 py-4 bg-red-500/10 border border-red-400 text-red-200 backdrop-blur-md rounded-xl shadow-md">
                             <p className="text-base font-medium">{error}</p>
                         </div>
                     ) : (
-                        // Display search summary if products are found
+                        // Display search summary regardless of product count (0 results or more)
                         <p className="text-2xl font-semibold">
-                            {products.length} Results
-                            {searchParams.q && ` for '${searchParams.q}'`}
-                            {searchParams.category && ` in '${searchParams.category}' category`}
-                            {(searchParams.division || searchParams.district || searchParams.ward || searchParams.area) &&
-                                ` near ${[searchParams.area, searchParams.division, searchParams.district, searchParams.ward]
-                                    .filter(Boolean)
-                                    .reverse() // Display from broader to specific location for readability
-                                    .join(', ')}`}
-                            {(searchParams.minPrice > 0 || searchParams.maxPrice < 10000000) &&
-                                ` (Price: ৳${searchParams.minPrice.toLocaleString()} - ৳${searchParams.maxPrice.toLocaleString()})`}
-                            {searchParams.usedFor && ` (Condition: ${searchParams.usedFor.replace(/_/g, ' ')})`}
+                            {loading ? (
+                                <>Searching...</> // Optional text while loading
+                            ) : (
+                                <>
+                                    {products.length} Results
+                                    {searchParams.q && ` for '${searchParams.q}'`}
+                                    {searchParams.category && ` in '${searchParams.category}' category`}
+                                    {(searchParams.division || searchParams.district || searchParams.ward || searchParams.area) &&
+                                        ` near ${[searchParams.area, searchParams.division, searchParams.district, searchParams.ward]
+                                            .filter(Boolean)
+                                            .reverse() // Display from broader to specific location for readability
+                                            .join(', ')}`}
+                                    {(searchParams.minPrice > 0 || searchParams.maxPrice < 10000000) &&
+                                        ` (Price: ৳${searchParams.minPrice.toLocaleString()} - ৳${searchParams.maxPrice.toLocaleString()})`}
+                                    {searchParams.usedFor && ` (Condition: ${searchParams.usedFor.replace(/_/g, ' ')})`}
+                                </>
+                            )}
                         </p>
                     )}
                 </div>
@@ -237,12 +229,39 @@ const SearchResultPage = () => {
                     </aside>
 
                     {/* Product Grid (Main Content Area) */}
-                    <section className="md:w-3/4">
+                    <section className="md:w-3/4 flex flex-col items-center justify-center min-h-[400px]"> {/* Added min-h for consistent height */}
                         {loading ? (
-                            <p className="text-center text-gray-400">Loading products...</p>
+                            // Display loading animation in the product grid area
+                            <div className="flex flex-col items-center justify-center">
+                                <Loader className="h-20 w-20 text-blue-500 animate-spin" />
+                                <p className="mt-4 text-lg text-gray-400">Fetching products...</p>
+                            </div>
+                        ) : products.length === 0 ? (
+                            // Display "no results found" animation in the product grid area
+                            // Added custom keyframes for a simple bounce effect
+                            <div className="flex flex-col items-center justify-center text-gray-400">
+                                {/* Custom CSS for keyframes */}
+                                <style>
+                                    {`
+                                    @keyframes bounce-icon {
+                                        0%, 100% {
+                                            transform: translateY(0);
+                                        }
+                                        50% {
+                                            transform: translateY(-10px);
+                                        }
+                                    }
+                                    .animate-bounce-icon {
+                                        animation: bounce-icon 1s ease-in-out infinite;
+                                    }
+                                    `}
+                                </style>
+                                <SearchX className="h-24 w-24 mb-4 text-gray-500 animate-bounce-icon" /> {/* Using SearchX with bounce */}
+                                <p className="text-2xl font-semibold mb-2">No products found.</p>
+                                <p className="text-lg text-center">Please try adjusting your search filters or terms.</p>
+                            </div>
                         ) : (
-                            // Always pass the products state to ProductGrid,
-                            // error message is handled in the summary section above.
+                            // Display ProductGrid if products are found
                             <ProductGrid products={products} title="Search Results" />
                         )}
                     </section>

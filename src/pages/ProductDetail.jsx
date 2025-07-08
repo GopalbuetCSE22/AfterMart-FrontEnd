@@ -103,7 +103,12 @@ const ProductDetail = () => {
     };
 
     if (loading) {
-        return <p className="text-center text-gray-400 mt-10">Loading product details...</p>;
+        //show some nice animation for loading
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-slate-900 text-white">
+                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+            </div>
+        );
     }
     if (error) {
         return <p className="text-center text-red-500 mt-10">{error}</p>;
@@ -122,7 +127,7 @@ const ProductDetail = () => {
                     <div className="md:w-1/2">
                         <div className="rounded-2xl overflow-hidden shadow-lg mb-4 bg-slate-800">
                             <img
-                                src={images[mainImageIndex] || 'https://placehold.co/600x400/334155/E2E8F0?text=No+Image'} 
+                                src={images[mainImageIndex] || 'https://placehold.co/600x400/334155/E2E8F0?text=No+Image'}
                                 alt={`Product Image ${mainImageIndex + 1}`}
                                 className="w-full h-80 object-cover"
                                 onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/600x400/334155/E2E8F0?text=No+Image'; }} //
