@@ -7,6 +7,7 @@ import {
   FiTruck,
   FiMapPin,
   FiBox,
+  FiLock,
 } from "react-icons/fi";
 
 function StarRating({ rating }) {
@@ -30,7 +31,7 @@ function StarRating({ rating }) {
         </FiStar>
       )}
       {[...Array(emptyStars)].map((_, i) => (
-        <FiStar key={"empty" + i} className="text-gray-400" />
+        <FiStar key={"empty" + i} className="text-gray-600" />
       ))}
       <span className="ml-2 text-yellow-300 font-semibold">
         {safeRating.toFixed(1)}
@@ -44,6 +45,13 @@ function DeliveryManDashBoard() {
   const [orders, setOrders] = useState([]);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [loadingOrders, setLoadingOrders] = useState(true);
+  const [passwordData, setPasswordData] = useState({
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordMsg, setPasswordMsg] = useState(null);
 
   useEffect(() => {
     const deliveryman_id = localStorage.getItem("deliveryman_id");
@@ -72,13 +80,23 @@ function DeliveryManDashBoard() {
   // Accept order handler
   const handleAcceptOrder = async (order, idx) => {
     try {
-      // You should replace this with your actual backend endpoint and payload
-      await axios.post(`http://localhost:5000/api/deliveryman/accept-order`, {
-        order, // or order_id or whatever your backend expects
+      const deliveryman_id = localStorage.getItem("deliveryman_id");
+      if (!deliveryman_id) {
+        alert("Deliveryman ID not found.");
+        return;
+      }
+      if (!order.shipment_id) {
+        alert("Shipment ID not found for this order.");
+        return;
+      }
+      await axios.post(`http://localhost:5000/api/deliveryman/acceptshipment`, {
+        shipmentId: order.shipment_id,
+        deliverymanId: deliveryman_id,
       });
       // Optionally update UI
       const updatedOrders = [...orders];
       updatedOrders[idx].status = "Accepted";
+      updatedOrders[idx].deliveryman_id = deliveryman_id;
       setOrders(updatedOrders);
       alert("Order accepted!");
     } catch (error) {
@@ -86,42 +104,105 @@ function DeliveryManDashBoard() {
     }
   };
 
+  // Mark as delivered handler
+  const handleDelivered = async (order, idx) => {
+    try {
+      if (!order.shipment_id) {
+        alert("Shipment ID not found for this order.");
+        return;
+      }
+      await axios.patch(
+        `http://localhost:5000/api/deliveryman/markdelivered/${order.shipment_id}`
+      );
+      const updatedOrders = [...orders];
+      updatedOrders[idx].status = "Delivered";
+      setOrders(updatedOrders);
+      alert("Order marked as delivered!");
+    } catch (error) {
+      alert("Failed to mark as delivered.");
+    }
+  };
+
+  // Password change handler
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    setPasswordMsg(null);
+    if (
+      !passwordData.oldPassword ||
+      !passwordData.newPassword ||
+      !passwordData.confirmPassword
+    ) {
+      setPasswordMsg({ type: "error", text: "All fields are required." });
+      return;
+    }
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordMsg({ type: "error", text: "Passwords do not match." });
+      return;
+    }
+    setPasswordLoading(true);
+    try {
+      const deliveryman_id = localStorage.getItem("deliveryman_id");
+      await axios.patch(
+        `http://localhost:5000/api/deliveryman/changepassword/${deliveryman_id}`,
+        {
+          oldPassword: passwordData.oldPassword,
+          newPassword: passwordData.newPassword,
+        }
+      );
+      setPasswordMsg({ type: "success", text: "Password changed successfully." });
+      setPasswordData({
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+    } catch (error) {
+      setPasswordMsg({
+        type: "error",
+        text:
+          error.response?.data?.message ||
+          "Failed to change password. Please try again.",
+      });
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-blue-950 to-blue-900 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black p-8">
       <div className="max-w-5xl mx-auto flex flex-col gap-10">
         {/* Profile Section */}
-        <div className="bg-gradient-to-br from-blue-900/90 to-gray-900/90 rounded-2xl shadow-2xl p-8 border border-blue-800 flex flex-col md:flex-row gap-8 items-center">
+        <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl p-8 border border-gray-800 flex flex-col md:flex-row gap-8 items-center backdrop-blur-md">
           {loadingProfile ? (
             <div className="text-gray-300">Loading profile...</div>
           ) : profile ? (
             <>
               <div className="flex flex-col items-center gap-2">
-                <div className="w-24 h-24 rounded-full bg-blue-400 flex items-center justify-center shadow-lg border-4 border-blue-300 overflow-hidden">
-                  <FiUser className="text-5xl text-white" />
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center shadow-lg border-4 border-gray-700 overflow-hidden">
+                  <FiUser className="text-5xl text-gray-200" />
                 </div>
                 <StarRating rating={Number(profile.rating_avg) || 0} />
               </div>
-              <div className="flex-1 flex flex-col gap-3 text-gray-100">
+              <div className="flex-1 flex flex-col gap-3 text-gray-200">
                 <div className="flex items-center gap-2">
-                  <FiUser className="text-blue-400" />
+                  <FiUser className="text-emerald-400" />
                   <span className="font-semibold">Name:</span> {profile.name}
                 </div>
                 <div className="flex items-center gap-2">
-                  <FiMail className="text-blue-400" />
+                  <FiMail className="text-emerald-400" />
                   <span className="font-semibold">Email:</span> {profile.email}
                 </div>
                 <div className="flex items-center gap-2">
-                  <FiTruck className="text-blue-400" />
+                  <FiTruck className="text-emerald-400" />
                   <span className="font-semibold">Vehicle Type:</span>{" "}
                   {profile.vehicle_type}
                 </div>
                 <div className="flex items-center gap-2">
-                  <FiTruck className="text-blue-400" />
+                  <FiTruck className="text-emerald-400" />
                   <span className="font-semibold">Deliveries:</span>{" "}
                   {profile.delivery_count || 0}
                 </div>
                 <div className="flex items-center gap-2">
-                  <FiMapPin className="text-blue-400" />
+                  <FiMapPin className="text-emerald-400" />
                   <span className="font-semibold">Preferred Area:</span>
                   <span>
                     {profile.division}, {profile.district}, {profile.ward},{" "}
@@ -136,32 +217,26 @@ function DeliveryManDashBoard() {
         </div>
 
         {/* Incoming Orders Section */}
-        <div className="bg-gradient-to-br from-gray-900/90 to-blue-900/90 rounded-2xl shadow-2xl p-8 border border-blue-800">
-          <h2 className="text-2xl font-extrabold mb-6 text-blue-300 flex items-center gap-2">
-            <FiBox className="text-blue-400" /> Incoming Orders
+        <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl p-8 border border-gray-800">
+          <h2 className="text-2xl font-extrabold mb-6 text-emerald-300 flex items-center gap-2">
+            <FiBox className="text-emerald-400" /> Incoming Orders
           </h2>
           {loadingOrders ? (
             <div className="text-gray-300">Loading orders...</div>
           ) : orders.length === 0 ? (
-            <div className="text-gray-400 text-center">No incoming orders.</div>
+            <div className="text-gray-500 text-center">No incoming orders.</div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full border border-blue-900 rounded-lg overflow-hidden shadow">
+              <table className="w-full border border-gray-800 rounded-lg overflow-hidden shadow">
                 <thead>
-                  <tr className="bg-blue-900/80">
-                    <th className="py-3 px-5 border-b text-blue-300 font-semibold">
+                  <tr className="bg-gray-800/80">
+                    <th className="py-3 px-5 border-b text-emerald-300 font-semibold">
                       Buyer Name
                     </th>
-                    <th className="py-3 px-5 border-b text-blue-300 font-semibold">
+                    <th className="py-3 px-5 border-b text-emerald-300 font-semibold">
                       Total Price
                     </th>
-                    <th className="py-3 px-5 border-b text-blue-300 font-semibold">
-                      Status
-                    </th>
-                    <th className="py-3 px-5 border-b text-blue-300 font-semibold">
-                      Payment Status
-                    </th>
-                    <th className="py-3 px-5 border-b text-blue-300 font-semibold">
+                    <th className="py-3 px-5 border-b text-emerald-300 font-semibold">
                       Action
                     </th>
                   </tr>
@@ -170,28 +245,56 @@ function DeliveryManDashBoard() {
                   {orders.map((order, idx) => (
                     <tr
                       key={idx}
-                      className="bg-blue-950/80 hover:bg-blue-900/60 transition"
+                      className="bg-gray-900/80 hover:bg-gray-800/60 transition"
                     >
-                      <td className="py-3 px-5 border-b text-gray-100">
+                      <td className="py-3 px-5 border-b text-gray-200">
                         {order.name}
                       </td>
-                      <td className="py-3 px-5 border-b text-gray-100">
+                      <td className="py-3 px-5 border-b text-gray-200">
                         ৳{order.total_price}
                       </td>
-                      <td className="py-3 px-5 border-b text-gray-100">
-                        {order.status}
-                      </td>
-                      <td className="py-3 px-5 border-b text-gray-100">
-                        {order.payment_status}
-                      </td>
-                      <td className="py-3 px-5 border-b text-gray-100">
+                      <td className="py-3 px-5 border-b flex gap-2">
                         <button
-                          className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded shadow transition"
+                          className={`px-4 py-1 rounded shadow transition font-semibold
+                            ${
+                              order.status === "Accepted" ||
+                              order.deliveryman_id != null
+                                ? "bg-gray-700 text-gray-400 cursor-not-allowed"
+                                : "bg-emerald-600 hover:bg-emerald-700 text-white"
+                            }
+                          `}
                           onClick={() => handleAcceptOrder(order, idx)}
-                          disabled={order.status === "Accepted"}
+                          disabled={
+                            order.status === "ACCEPTED" ||
+                            order.deliveryman_id != null ||
+                            order.status === "DELIVERED"
+                          }
                         >
-                          {order.status === "Accepted" ? "Accepted" : "Accept"}
+                          {order.status === "ACCEPTED" ||
+                          order.deliveryman_id != null
+                            ? "Accepted"
+                            : "Accept"}
                         </button>
+                        {
+                        order.status === "ACCEPTED" &&
+                          order.deliveryman_id != null &&
+                          order.status !== "DELIVERED"
+                           && (
+                            <button
+                              className="px-4 py-1 rounded shadow bg-emerald-800 hover:bg-emerald-900 text-white font-semibold transition"
+                              onClick={() => handleDelivered(order, idx)}
+                              disabled={order.status === "DELIVERED"}
+                            >
+                              {order.status === "DELIVERED"
+                                ? "Delivered"
+                                : "Mark as Delivered"}
+                            </button>
+                          )}
+                        {order.status === "DELIVERED" && (
+                          <span className="px-4 py-1 rounded bg-gray-700 text-emerald-400 font-semibold">
+                            Delivered
+                          </span>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -199,6 +302,72 @@ function DeliveryManDashBoard() {
               </table>
             </div>
           )}
+        </div>
+
+        {/* Password Change Card */}
+        <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl p-8 border border-gray-800 max-w-lg mx-auto">
+          <h2 className="text-xl font-bold mb-4 text-emerald-300 flex items-center gap-2">
+            <FiLock className="text-emerald-400" /> Change Password
+          </h2>
+          <form className="flex flex-col gap-4" onSubmit={handleChangePassword}>
+            <input
+              type="password"
+              className="bg-gray-800 text-gray-200 rounded px-4 py-2 border border-gray-700 focus:outline-none focus:border-emerald-500"
+              placeholder="Old Password"
+              value={passwordData.oldPassword}
+              onChange={(e) =>
+                setPasswordData((d) => ({
+                  ...d,
+                  oldPassword: e.target.value,
+                }))
+              }
+              autoComplete="current-password"
+            />
+            <input
+              type="password"
+              className="bg-gray-800 text-gray-200 rounded px-4 py-2 border border-gray-700 focus:outline-none focus:border-emerald-500"
+              placeholder="New Password"
+              value={passwordData.newPassword}
+              onChange={(e) =>
+                setPasswordData((d) => ({
+                  ...d,
+                  newPassword: e.target.value,
+                }))
+              }
+              autoComplete="new-password"
+            />
+            <input
+              type="password"
+              className="bg-gray-800 text-gray-200 rounded px-4 py-2 border border-gray-700 focus:outline-none focus:border-emerald-500"
+              placeholder="Confirm New Password"
+              value={passwordData.confirmPassword}
+              onChange={(e) =>
+                setPasswordData((d) => ({
+                  ...d,
+                  confirmPassword: e.target.value,
+                }))
+              }
+              autoComplete="new-password"
+            />
+            <button
+              type="submit"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded px-4 py-2 transition disabled:opacity-60"
+              disabled={passwordLoading}
+            >
+              {passwordLoading ? "Changing..." : "Change Password"}
+            </button>
+            {passwordMsg && (
+              <div
+                className={`text-sm mt-2 ${
+                  passwordMsg.type === "success"
+                    ? "text-emerald-400"
+                    : "text-red-400"
+                }`}
+              >
+                {passwordMsg.text}
+              </div>
+            )}
+          </form>
         </div>
       </div>
     </div>
