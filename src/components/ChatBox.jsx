@@ -1,7 +1,13 @@
-import React, { useState, useEffect, useRef } from "react";
+// src/components/ChatBox.jsx
 
-const ChatBox = ({ productId, sellerId, buyerId, currentUserId, onClose }) => {
-    const [conversationId, setConversationId] = useState(null);
+import React, { useState, useEffect, useRef } from "react";
+import axios from 'axios';
+
+const BASE_URL = 'http://localhost:5000/api';
+
+const ChatBox = ({ productId, sellerId, buyerId, conversationId: initialConversationId, currentUserId, onClose }) => {
+    // Initialize conversationId using the prop if available, otherwise null
+    const [conversationId, setConversationId] = useState(initialConversationId);
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState("");
     const messagesEndRef = useRef(null);
@@ -10,59 +16,69 @@ const ChatBox = ({ productId, sellerId, buyerId, currentUserId, onClose }) => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
+    // Scroll to bottom when messages change
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
 
+    // Effect to start or retrieve conversation ID
     useEffect(() => {
+        // If an initialConversationId is provided, we already have the ID, so no need to call startConversation
+        if (initialConversationId) {
+            setConversationId(initialConversationId);
+            return; // Exit early as we don't need to start a new one
+        }
+
+        // Only proceed to start a conversation if no ID was provided (i.e., it's a new chat initiation)
         const startConversation = async () => {
             try {
-                const res = await fetch("http://localhost:5000/api/messages/start", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ productId, buyerId, sellerId }),
-                });
-                const data = await res.json();
-                if (data.conversationId) setConversationId(data.conversationId);
+                const res = await axios.post(`${BASE_URL}/messages/start`, { productId, buyerId, sellerId });
+                if (res.data.conversationId) {
+                    setConversationId(res.data.conversationId);
+                } else {
+                    console.error("Failed to get conversation ID from start endpoint.");
+                    // Optionally show a toast error to the user
+                }
             } catch (error) {
                 console.error("Failed to start conversation", error);
+                // Optionally show a toast error to the user
             }
         };
-        startConversation();
-    }, [productId, buyerId, sellerId]);
 
+        startConversation();
+    }, [productId, buyerId, sellerId, initialConversationId]); // Dependencies: if any of these change, re-run
+
+    // Effect to fetch messages once conversationId is available
     useEffect(() => {
-        if (!conversationId) return;
+        if (!conversationId) return; // Don't fetch messages if conversationId isn't set yet
 
         const fetchMessages = async () => {
             try {
-                const res = await fetch(`http://localhost:5000/api/messages/${conversationId}`);
-                const data = await res.json();
-                setMessages(data);
+                const res = await axios.get(`${BASE_URL}/messages/${conversationId}`);
+                setMessages(res.data);
             } catch (error) {
                 console.error("Failed to fetch messages", error);
             }
         };
 
-        fetchMessages();
-        const intervalId = setInterval(fetchMessages, 5000);
-        return () => clearInterval(intervalId);
-    }, [conversationId]);
+        fetchMessages(); // Fetch immediately on conversationId change
+        const intervalId = setInterval(fetchMessages, 5000); // Then poll every 5 seconds
+        return () => clearInterval(intervalId); // Cleanup on unmount or conversationId change
+    }, [conversationId]); // Dependency: re-fetch messages if conversationId changes
 
     const handleSendMessage = async () => {
         if (!newMessage.trim() || !conversationId) return;
 
         try {
-            await fetch("http://localhost:5000/api/messages/send", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    conversationId,
-                    senderId: currentUserId,
-                    content: newMessage.trim(),
-                }),
+            await axios.post(`${BASE_URL}/messages/send`, {
+                conversationId,
+                senderId: currentUserId,
+                content: newMessage.trim(),
             });
             setNewMessage("");
+            // Re-fetch messages immediately after sending for instant UI update
+            const res = await axios.get(`${BASE_URL}/messages/${conversationId}`);
+            setMessages(res.data);
         } catch (error) {
             console.error("Failed to send message", error);
         }
@@ -78,9 +94,10 @@ const ChatBox = ({ productId, sellerId, buyerId, currentUserId, onClose }) => {
     };
 
     return (
-        <div className="bg-slate-900 rounded-lg shadow-lg max-w-xl mx-auto flex flex-col h-[500px] text-white">
+        // Changed the outer div's classes for positioning
+        <div className="fixed bottom-4 right-4 bg-slate-900 rounded-lg shadow-lg w-96 flex flex-col h-[500px] text-white z-50">
             <div className="flex items-center justify-between bg-slate-800 px-4 py-2 rounded-t-lg border-b border-slate-700">
-                <h3 className="font-semibold text-lg">Chat</h3>
+                <h3 className="font-semibold text-lg">Chat (Buyer: {buyerId})</h3>
                 <button onClick={onClose} className="text-slate-400 hover:text-white transition p-1 rounded">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

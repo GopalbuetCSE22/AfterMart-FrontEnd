@@ -157,17 +157,22 @@ function UserDashBoard() {
                 key={prod.product_id}
                 className="border-b border-gray-800 hover:bg-blue-900/20 transition"
               >
-                <td className="px-4 py-3 text-gray-100">
-                  {prod.title + " (" + prod.description + ")"}
+                <td className="px-4 py-3 text-gray-100 flex gap-3 items-center">
+                  <span>{prod.title + " (" + prod.description + ")"}</span>
+                  <button
+                    className="ml-3 text-sm bg-blue-700 hover:bg-blue-800 text-white px-3 py-1 rounded-md shadow"
+                    onClick={() => navigate(`/dashboard/product/${prod.product_id}`)}
+                  >
+                    Edit
+                  </button>
                 </td>
                 <td className="px-4 py-3 text-gray-100">{prod.price}৳</td>
                 <td className="px-4 py-3">
                   <span
-                    className={`px-2 py-1 rounded text-xs font-semibold ${
-                      prod.isavailable === false
-                        ? "bg-red-700 text-red-100"
-                        : "bg-green-700 text-green-100"
-                    }`}
+                    className={`px-2 py-1 rounded text-xs font-semibold ${prod.isavailable === false
+                      ? "bg-red-700 text-red-100"
+                      : "bg-green-700 text-green-100"
+                      }`}
                   >
                     {prod.isavailable === false ? "Sold" : "Available"}
                   </span>
@@ -233,15 +238,14 @@ function UserDashBoard() {
                 </td>
                 <td className="px-4 py-3">
                   <span
-                    className={`px-2 py-1 rounded text-xs font-semibold ${
-                      item.status === "delivered"
-                        ? "bg-green-700 text-green-100"
-                        : "bg-yellow-700 text-yellow-100"
-                    }`}
+                    className={`px-2 py-1 rounded text-xs font-semibold ${item.status === "delivered"
+                      ? "bg-green-700 text-green-100"
+                      : "bg-yellow-700 text-yellow-100"
+                      }`}
                   >
                     {item.status
                       ? item.status.charAt(0).toUpperCase() +
-                        item.status.slice(1)
+                      item.status.slice(1)
                       : "Pending"}
                   </span>
                 </td>
@@ -319,8 +323,10 @@ function UserDashBoard() {
             {wishlist.map((prod) => (
               <tr
                 key={prod.product_id}
-                className="border-b border-gray-800 hover:bg-pink-900/20 transition"
+                className="border-b border-gray-800 hover:bg-pink-900/20 transition cursor-pointer"
+                onClick={() => navigate(`/product/${prod.product_id}`)}
               >
+
                 <td className="px-4 py-3 text-gray-100">
                   {prod.title +
                     (prod.description ? ` (${prod.description})` : "")}
@@ -328,11 +334,10 @@ function UserDashBoard() {
                 <td className="px-4 py-3 text-gray-100">{prod.price}৳</td>
                 <td className="px-4 py-3">
                   <span
-                    className={`px-2 py-1 rounded text-xs font-semibold ${
-                      prod.isavailable === false
-                        ? "bg-red-700 text-red-100"
-                        : "bg-green-700 text-green-100"
-                    }`}
+                    className={`px-2 py-1 rounded text-xs font-semibold ${prod.isavailable === false
+                      ? "bg-red-700 text-red-100"
+                      : "bg-green-700 text-green-100"
+                      }`}
                   >
                     {prod.isavailable === false ? "Sold" : "Available"}
                   </span>
@@ -443,56 +448,52 @@ function UserDashBoard() {
             )}
           </div>
           <h2 className="text-2xl font-bold tracking-wide text-blue-200 drop-shadow-lg">
-            AfterMart
+            {/* show the user name instead of aftermart */}
+            {userInfo ? userInfo.name || "User" : "Loading..."}
           </h2>
         </div>
         <nav className="flex flex-col w-full space-y-3">
           <button
-            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${
-              activeSection === "Info"
-                ? "bg-gradient-to-r from-blue-900 via-blue-800 to-gray-900 text-white shadow-xl ring-2 ring-blue-700"
-                : "hover:bg-blue-900/60 hover:text-white text-blue-200"
-            }`}
+            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${activeSection === "Info"
+              ? "bg-gradient-to-r from-blue-900 via-blue-800 to-gray-900 text-white shadow-xl ring-2 ring-blue-700"
+              : "hover:bg-blue-900/60 hover:text-white text-blue-200"
+              }`}
             onClick={() => setActiveSection("Info")}
           >
             <FiHome className="text-xl" /> Info
           </button>
           <button
-            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${
-              activeSection === "myProducts"
-                ? "bg-gradient-to-r from-blue-900 via-blue-800 to-gray-900 text-white shadow-xl ring-2 ring-blue-700"
-                : "hover:bg-blue-900/60 hover:text-white text-blue-200"
-            }`}
+            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${activeSection === "myProducts"
+              ? "bg-gradient-to-r from-blue-900 via-blue-800 to-gray-900 text-white shadow-xl ring-2 ring-blue-700"
+              : "hover:bg-blue-900/60 hover:text-white text-blue-200"
+              }`}
             onClick={() => setActiveSection("myProducts")}
           >
             <FiBox className="text-xl" /> My Products
           </button>
           <button
-            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${
-              activeSection === "bought"
-                ? "bg-gradient-to-r from-blue-900 via-blue-800 to-gray-900 text-white shadow-xl ring-2 ring-blue-700"
-                : "hover:bg-blue-900/60 hover:text-white text-blue-200"
-            }`}
+            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${activeSection === "bought"
+              ? "bg-gradient-to-r from-blue-900 via-blue-800 to-gray-900 text-white shadow-xl ring-2 ring-blue-700"
+              : "hover:bg-blue-900/60 hover:text-white text-blue-200"
+              }`}
             onClick={() => setActiveSection("bought")}
           >
             <FiShoppingBag className="text-xl" /> My Bought Products
           </button>
           <button
-            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${
-              activeSection === "wishlist"
-                ? "bg-gradient-to-r from-pink-900 via-pink-800 to-gray-900 text-white shadow-xl ring-2 ring-pink-700"
-                : "hover:bg-pink-900/60 hover:text-white text-pink-200"
-            }`}
+            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${activeSection === "wishlist"
+              ? "bg-gradient-to-r from-pink-900 via-pink-800 to-gray-900 text-white shadow-xl ring-2 ring-pink-700"
+              : "hover:bg-pink-900/60 hover:text-white text-pink-200"
+              }`}
             onClick={() => setActiveSection("wishlist")}
           >
             <FiHeart className="text-xl" /> Wishlist
           </button>
           <button
-            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${
-              activeSection === "notifications"
-                ? "bg-gradient-to-r from-yellow-900 via-yellow-800 to-gray-900 text-white shadow-xl ring-2 ring-yellow-700"
-                : "hover:bg-yellow-900/60 hover:text-white text-yellow-200"
-            }`}
+            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${activeSection === "notifications"
+              ? "bg-gradient-to-r from-yellow-900 via-yellow-800 to-gray-900 text-white shadow-xl ring-2 ring-yellow-700"
+              : "hover:bg-yellow-900/60 hover:text-white text-yellow-200"
+              }`}
             onClick={() => setActiveSection("notifications")}
           >
             <FiBell className="text-xl" /> Notifications

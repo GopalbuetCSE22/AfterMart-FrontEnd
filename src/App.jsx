@@ -20,6 +20,8 @@ import AdminDashBoard from './pages/DashBoard/AdminDashBoard'; // Admin dashboar
 import UserDashBoard from './pages/DashBoard/UserDashBoard'; // User dashboard
 import DeliveryServiceDashBoard from './pages/DashBoard/DeliveryServiceDashBoard'; // Delivery service dashboard
 import DeliveryManDashBoard from './pages/DashBoard/DeliveryManDashBoard'; // Delivery man dashboard
+import ProductManagementPage from './pages/DashBoard/ProductManagementPage';
+//productmanagemet
 import ProductSellPage from './pages/ProductSellPage'; // Product sell page
 
 // Assuming supabase client configuration (from your provided App.js)
@@ -63,6 +65,9 @@ function App() {
         <Route path="/about" element={<div>About Us Page Placeholder</div>} />
         <Route path="/contact" element={<div>Contact Page Placeholder</div>} />
         <Route path="/terms" element={<div>Terms Page Placeholder</div>} />
+        {/* <Route path="/dashboard/product/:productId" element={<ManageProduct />} /> */}
+        {/* <Route path="/dashboard/product/:id" element={<ProductManagement />} /> */}
+        <Route path="/dashboard/product/:id" element={<ProductManagementPage />} /> {/* Product management page */}
 
         {/* Catch-all route for 404 Not Found */}
         <Route path="*" element={<div>404 Not Found</div>} />
