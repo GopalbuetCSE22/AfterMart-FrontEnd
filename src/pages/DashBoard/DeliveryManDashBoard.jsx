@@ -9,7 +9,7 @@ import {
   FiBox,
   FiLock,
 } from "react-icons/fi";
-
+import { useNavigate } from "react-router-dom";
 function StarRating({ rating }) {
   const safeRating = typeof rating === "number" && !isNaN(rating) ? rating : 0;
   const fullStars = Math.floor(safeRating);
@@ -83,6 +83,7 @@ function DeliveryManDashBoard() {
       const deliveryman_id = localStorage.getItem("deliveryman_id");
       if (!deliveryman_id) {
         alert("Deliveryman ID not found.");
+        navigate("/login");
         return;
       }
       if (!order.shipment_id) {
@@ -149,7 +150,10 @@ function DeliveryManDashBoard() {
           newPassword: passwordData.newPassword,
         }
       );
-      setPasswordMsg({ type: "success", text: "Password changed successfully." });
+      setPasswordMsg({
+        type: "success",
+        text: "Password changed successfully.",
+      });
       setPasswordData({
         oldPassword: "",
         newPassword: "",
@@ -166,7 +170,11 @@ function DeliveryManDashBoard() {
       setPasswordLoading(false);
     }
   };
-
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/login");
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black p-8">
       <div className="max-w-5xl mx-auto flex flex-col gap-10">
@@ -275,11 +283,9 @@ function DeliveryManDashBoard() {
                             ? "Accepted"
                             : "Accept"}
                         </button>
-                        {
-                        order.status === "ACCEPTED" &&
+                        {order.status === "ACCEPTED" &&
                           order.deliveryman_id != null &&
-                          order.status !== "DELIVERED"
-                           && (
+                          order.status !== "DELIVERED" && (
                             <button
                               className="px-4 py-1 rounded shadow bg-emerald-800 hover:bg-emerald-900 text-white font-semibold transition"
                               onClick={() => handleDelivered(order, idx)}
@@ -368,6 +374,14 @@ function DeliveryManDashBoard() {
               </div>
             )}
           </form>
+        </div>
+        <div>
+          <button
+            onClick={handleLogout}
+            className="mt-auto flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-red-900 via-red-800 to-gray-900 text-red-200 hover:bg-red-900/80 transition font-semibold shadow-lg"
+          >
+            Logout
+          </button>
         </div>
       </div>
     </div>

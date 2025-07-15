@@ -1,7 +1,13 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FaUser, FaUserShield, FaTruckMoving, FaPeopleCarry } from "react-icons/fa";
+import {
+  FaUser,
+  FaUserShield,
+  FaTruckMoving,
+  FaPeopleCarry,
+  FaHome, // Import the Home icon
+} from "react-icons/fa";
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -30,11 +36,11 @@ function LoginPage() {
   };
 
   return (
-    <div className="relative flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 overflow-hidden font-sans">
+    <div className="relative flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 overflow-hidden font-sans">
       {/* Subtle, **Static** Background */}
       <div className="absolute inset-0 z-0 opacity-10">
         {/* Simple grid overlay for a futuristic feel without animation */}
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3d3LnYy5vcmcvMjAwMC9zdmciPjxlZz48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjk2MjZmIiBzdHJva2Utd2lkdGg9IjAuMiIvPjxyZWN0IHhvPSIwIiB5PSIwIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJub25lIiBzdHJva2U9IiMyOTYyNmYiIHN0cm9rZS13aWR0aD0iMC4xIi8+PC9lZz48L3N2Zz4=')] bg-repeat opacity-5"></div>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxlZz48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjk2MjZmIiBzdHJva2Utd2lkdGg9IjAuMiIvPjxyZWN0IHhvPSIwIiB5PSIwIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJub25lIiBzdHJva2U9IiMyOTYyNmYiIHN0cm9rZS13aWR0aD0iMC4xIi8+PC9lZz48L3N2Zz4=')] bg-repeat opacity-5"></div>
         {/* Very subtle static radial gradient for depth */}
         <div className="absolute inset-0 bg-radial-gradient from-transparent via-purple-900/10 to-transparent"></div>
       </div>
@@ -87,6 +93,23 @@ function LoginPage() {
           </motion.div>
         </div>
 
+        {/* --- New Home Button Section --- */}
+        <div className="mt-8 text-center"> {/* Increased margin-top slightly */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate("/")} // Navigates to the root (home) page
+            className="inline-flex items-center justify-center px-6 py-3 rounded-full text-white font-semibold text-lg
+                       bg-gradient-to-r from-gray-700 to-gray-800 shadow-lg
+                       hover:from-gray-600 hover:to-gray-700 transition-all duration-300
+                       transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75"
+          >
+            <FaHome className="mr-3 text-xl" /> Back to Home
+          </motion.button>
+        </div>
+        {/* --- End New Home Button Section --- */}
+
+
         <div className="mt-12 text-center text-sm text-gray-500">
           © AfterMart 2025 - All Rights Reserved
         </div>
@@ -127,9 +150,9 @@ function LoginButton({ label, icon, onClick, baseColor }) {
       whileTap={{ scale: 0.95 }}
       onClick={onClick}
       className={`relative w-full flex flex-col items-center justify-center p-6
-                  backdrop-blur-md rounded-xl text-white font-semibold text-lg
-                  shadow-md transition-all duration-300 overflow-hidden group
-                  ${scheme.gradient} border ${scheme.border} ${scheme.shadow}`}
+                    backdrop-blur-md rounded-xl text-white font-semibold text-lg
+                    shadow-md transition-all duration-300 overflow-hidden group
+                    ${scheme.gradient} border ${scheme.border} ${scheme.shadow}`}
       style={{
         aspectRatio: '1 / 1'
       }}

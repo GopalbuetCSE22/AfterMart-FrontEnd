@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import UploadImage from "../../components/UploadImage";
 import {
@@ -10,6 +10,7 @@ import {
   FiUser,
   FiLogOut,
 } from "react-icons/fi";
+import Header from "../../components/Header";
 
 // Example logo SVG (replace with your own if needed)
 const Logo = () => (
@@ -44,9 +45,19 @@ function UserDashBoard() {
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [wishlistError, setWishlistError] = useState(null);
 
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [notificationsError, setNotificationsError] = useState(null);
+
   const navigate = useNavigate();
   const userId = localStorage.getItem("user_id");
 
+  if (!userId) {
+    navigate("/login");
+    alert("You are not logged in. Please log in to access your dashboard.");
+    navigate("/login");
+    return; // Prevent rendering if userId is not found
+  }
   useEffect(() => {
     if (userId) {
       fetch(`http://localhost:5000/api/uploadImage/getProfilePic/${userId}`)
@@ -130,6 +141,43 @@ function UserDashBoard() {
     }
   }, [activeSection, userId]);
 
+  useEffect(() => {
+    if (activeSection === "notifications" && userId) {
+      setNotificationsLoading(true);
+      setNotificationsError(null);
+      fetch(`http://localhost:5000/api/notifications/${userId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setNotifications(Array.isArray(data) ? data : []);
+          setNotificationsLoading(false);
+        })
+        .catch(() => {
+          setNotificationsError("Failed to load notifications.");
+          setNotificationsLoading(false);
+        });
+    }
+  }, [activeSection, userId]);
+
+  // ! change the userphoto instantly
+  const fetchUserPhoto = () => {
+    if (userId) {
+      fetch(`http://localhost:5000/api/uploadImage/getProfilePic/${userId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data) && data.length > 0) {
+            setUserPhoto(data[0].profile_picture);
+          } else {
+            setUserPhoto(null);
+          }
+        })
+        .catch(() => setUserPhoto(null));
+    }
+  };
+
+  useEffect(() => {
+    fetchUserPhoto();
+  }, [userId]);
+
   const renderMyProductsTable = () => {
     if (myProductsLoading) {
       return <div className="text-blue-400 mt-6">Loading your products...</div>;
@@ -145,10 +193,18 @@ function UserDashBoard() {
         <table className="min-w-full bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-xl">
           <thead>
             <tr>
-              <th className="px-4 py-3 text-left text-blue-300 font-semibold">Product</th>
-              <th className="px-4 py-3 text-left text-blue-300 font-semibold">Price</th>
-              <th className="px-4 py-3 text-left text-blue-300 font-semibold">Status</th>
-              <th className="px-4 py-3 text-left text-blue-300 font-semibold">Created</th>
+              <th className="px-4 py-3 text-left text-blue-300 font-semibold">
+                Product
+              </th>
+              <th className="px-4 py-3 text-left text-blue-300 font-semibold">
+                Price
+              </th>
+              <th className="px-4 py-3 text-left text-blue-300 font-semibold">
+                Status
+              </th>
+              <th className="px-4 py-3 text-left text-blue-300 font-semibold">
+                Created
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -161,7 +217,9 @@ function UserDashBoard() {
                   <span>{prod.title + " (" + prod.description + ")"}</span>
                   <button
                     className="ml-3 text-sm bg-blue-700 hover:bg-blue-800 text-white px-3 py-1 rounded-md shadow"
-                    onClick={() => navigate(`/dashboard/product/${prod.product_id}`)}
+                    onClick={() =>
+                      navigate(`/dashboard/product/${prod.product_id}`)
+                    }
                   >
                     Edit
                   </button>
@@ -169,10 +227,11 @@ function UserDashBoard() {
                 <td className="px-4 py-3 text-gray-100">{prod.price}৳</td>
                 <td className="px-4 py-3">
                   <span
-                    className={`px-2 py-1 rounded text-xs font-semibold ${prod.isavailable === false
-                      ? "bg-red-700 text-red-100"
-                      : "bg-green-700 text-green-100"
-                      }`}
+                    className={`px-2 py-1 rounded text-xs font-semibold ${
+                      prod.isavailable === false
+                        ? "bg-red-700 text-red-100"
+                        : "bg-green-700 text-green-100"
+                    }`}
                   >
                     {prod.isavailable === false ? "Sold" : "Available"}
                   </span>
@@ -207,11 +266,21 @@ function UserDashBoard() {
         <table className="min-w-full bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-xl">
           <thead>
             <tr>
-              <th className="px-4 py-3 text-left text-blue-300 font-semibold">Product</th>
-              <th className="px-4 py-3 text-left text-blue-300 font-semibold">Price</th>
-              <th className="px-4 py-3 text-left text-blue-300 font-semibold">Deliveryman</th>
-              <th className="px-4 py-3 text-left text-blue-300 font-semibold">Status</th>
-              <th className="px-4 py-3 text-left text-blue-300 font-semibold">Bought On</th>
+              <th className="px-4 py-3 text-left text-blue-300 font-semibold">
+                Product
+              </th>
+              <th className="px-4 py-3 text-left text-blue-300 font-semibold">
+                Price
+              </th>
+              <th className="px-4 py-3 text-left text-blue-300 font-semibold">
+                Deliveryman
+              </th>
+              <th className="px-4 py-3 text-left text-blue-300 font-semibold">
+                Status
+              </th>
+              <th className="px-4 py-3 text-left text-blue-300 font-semibold">
+                Bought On
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -238,14 +307,15 @@ function UserDashBoard() {
                 </td>
                 <td className="px-4 py-3">
                   <span
-                    className={`px-2 py-1 rounded text-xs font-semibold ${item.status === "delivered"
-                      ? "bg-green-700 text-green-100"
-                      : "bg-yellow-700 text-yellow-100"
-                      }`}
+                    className={`px-2 py-1 rounded text-xs font-semibold ${
+                      item.status === "delivered"
+                        ? "bg-green-700 text-green-100"
+                        : "bg-yellow-700 text-yellow-100"
+                    }`}
                   >
                     {item.status
                       ? item.status.charAt(0).toUpperCase() +
-                      item.status.slice(1)
+                        item.status.slice(1)
                       : "Pending"}
                   </span>
                 </td>
@@ -313,10 +383,18 @@ function UserDashBoard() {
         <table className="min-w-full bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-xl">
           <thead>
             <tr>
-              <th className="px-4 py-3 text-left text-pink-300 font-semibold">Product</th>
-              <th className="px-4 py-3 text-left text-pink-300 font-semibold">Price</th>
-              <th className="px-4 py-3 text-left text-pink-300 font-semibold">Status</th>
-              <th className="px-4 py-3 text-left text-pink-300 font-semibold">Added On</th>
+              <th className="px-4 py-3 text-left text-pink-300 font-semibold">
+                Product
+              </th>
+              <th className="px-4 py-3 text-left text-pink-300 font-semibold">
+                Price
+              </th>
+              <th className="px-4 py-3 text-left text-pink-300 font-semibold">
+                Status
+              </th>
+              <th className="px-4 py-3 text-left text-pink-300 font-semibold">
+                Added On
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -326,7 +404,6 @@ function UserDashBoard() {
                 className="border-b border-gray-800 hover:bg-pink-900/20 transition cursor-pointer"
                 onClick={() => navigate(`/product/${prod.product_id}`)}
               >
-
                 <td className="px-4 py-3 text-gray-100">
                   {prod.title +
                     (prod.description ? ` (${prod.description})` : "")}
@@ -334,10 +411,11 @@ function UserDashBoard() {
                 <td className="px-4 py-3 text-gray-100">{prod.price}৳</td>
                 <td className="px-4 py-3">
                   <span
-                    className={`px-2 py-1 rounded text-xs font-semibold ${prod.isavailable === false
-                      ? "bg-red-700 text-red-100"
-                      : "bg-green-700 text-green-100"
-                      }`}
+                    className={`px-2 py-1 rounded text-xs font-semibold ${
+                      prod.isavailable === false
+                        ? "bg-red-700 text-red-100"
+                        : "bg-green-700 text-green-100"
+                    }`}
                   >
                     {prod.isavailable === false ? "Sold" : "Available"}
                   </span>
@@ -352,6 +430,43 @@ function UserDashBoard() {
           </tbody>
         </table>
       </div>
+    );
+  };
+
+  const renderNotifications = () => {
+    if (notificationsLoading) {
+      return (
+        <div className="text-yellow-400 mt-6">Loading notifications...</div>
+      );
+    }
+
+    if (notificationsError) {
+      return <div className="text-red-400 mt-6">{notificationsError}</div>;
+    }
+
+    if (!notifications.length) {
+      return <div className="text-gray-400 mt-6">No notifications yet.</div>;
+    }
+
+    return (
+      <ul className="mt-6 space-y-4">
+        {notifications.map((note) => (
+          <li
+            key={note.id}
+            className={`p-4 rounded-xl shadow-md border ${
+              note.is_read
+                ? "bg-gray-800/80 border-gray-700 text-gray-300"
+                : "bg-yellow-900/30 border-yellow-600 text-yellow-200"
+            }`}
+          >
+            <h4 className="text-lg font-semibold">{note.title}</h4>
+            {/* <p className="text-sm mt-1">{note.description}</p> */}
+            <p className="text-xs mt-2 text-gray-400">
+              {new Date(note.created_at).toLocaleString()}
+            </p>
+          </li>
+        ))}
+      </ul>
     );
   };
 
@@ -414,10 +529,9 @@ function UserDashBoard() {
             <p className="mt-2 text-lg text-gray-400">
               Here are your notifications.
             </p>
+            {renderNotifications()}
           </>
         );
-      default:
-        return null;
     }
   };
 
@@ -430,6 +544,7 @@ function UserDashBoard() {
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-blue-950 via-gray-950 to-blue-900">
       {/* Sidebar */}
+
       <aside className="w-80 bg-gradient-to-b from-blue-950/95 via-gray-900/90 to-gray-800/90 text-white p-8 space-y-8 fixed h-full shadow-2xl rounded-r-3xl flex flex-col items-center backdrop-blur-2xl border-r border-blue-900/80 z-20">
         <div className="flex flex-col items-center mb-8">
           <div className="mb-3">
@@ -454,51 +569,62 @@ function UserDashBoard() {
         </div>
         <nav className="flex flex-col w-full space-y-3">
           <button
-            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${activeSection === "Info"
-              ? "bg-gradient-to-r from-blue-900 via-blue-800 to-gray-900 text-white shadow-xl ring-2 ring-blue-700"
-              : "hover:bg-blue-900/60 hover:text-white text-blue-200"
-              }`}
+            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${
+              activeSection === "Info"
+                ? "bg-gradient-to-r from-blue-900 via-blue-800 to-gray-900 text-white shadow-xl ring-2 ring-blue-700"
+                : "hover:bg-blue-900/60 hover:text-white text-blue-200"
+            }`}
             onClick={() => setActiveSection("Info")}
           >
             <FiHome className="text-xl" /> Info
           </button>
           <button
-            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${activeSection === "myProducts"
-              ? "bg-gradient-to-r from-blue-900 via-blue-800 to-gray-900 text-white shadow-xl ring-2 ring-blue-700"
-              : "hover:bg-blue-900/60 hover:text-white text-blue-200"
-              }`}
+            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${
+              activeSection === "myProducts"
+                ? "bg-gradient-to-r from-blue-900 via-blue-800 to-gray-900 text-white shadow-xl ring-2 ring-blue-700"
+                : "hover:bg-blue-900/60 hover:text-white text-blue-200"
+            }`}
             onClick={() => setActiveSection("myProducts")}
           >
             <FiBox className="text-xl" /> My Products
           </button>
           <button
-            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${activeSection === "bought"
-              ? "bg-gradient-to-r from-blue-900 via-blue-800 to-gray-900 text-white shadow-xl ring-2 ring-blue-700"
-              : "hover:bg-blue-900/60 hover:text-white text-blue-200"
-              }`}
+            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${
+              activeSection === "bought"
+                ? "bg-gradient-to-r from-blue-900 via-blue-800 to-gray-900 text-white shadow-xl ring-2 ring-blue-700"
+                : "hover:bg-blue-900/60 hover:text-white text-blue-200"
+            }`}
             onClick={() => setActiveSection("bought")}
           >
             <FiShoppingBag className="text-xl" /> My Bought Products
           </button>
           <button
-            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${activeSection === "wishlist"
-              ? "bg-gradient-to-r from-pink-900 via-pink-800 to-gray-900 text-white shadow-xl ring-2 ring-pink-700"
-              : "hover:bg-pink-900/60 hover:text-white text-pink-200"
-              }`}
+            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${
+              activeSection === "wishlist"
+                ? "bg-gradient-to-r from-pink-900 via-pink-800 to-gray-900 text-white shadow-xl ring-2 ring-pink-700"
+                : "hover:bg-pink-900/60 hover:text-white text-pink-200"
+            }`}
             onClick={() => setActiveSection("wishlist")}
           >
             <FiHeart className="text-xl" /> Wishlist
           </button>
           <button
-            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${activeSection === "notifications"
-              ? "bg-gradient-to-r from-yellow-900 via-yellow-800 to-gray-900 text-white shadow-xl ring-2 ring-yellow-700"
-              : "hover:bg-yellow-900/60 hover:text-white text-yellow-200"
-              }`}
+            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${
+              activeSection === "notifications"
+                ? "bg-gradient-to-r from-yellow-900 via-yellow-800 to-gray-900 text-white shadow-xl ring-2 ring-yellow-700"
+                : "hover:bg-yellow-900/60 hover:text-white text-yellow-200"
+            }`}
             onClick={() => setActiveSection("notifications")}
           >
             <FiBell className="text-xl" /> Notifications
           </button>
         </nav>
+        <button
+          onClick={() => navigate("/")}
+          className="flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-green-900 via-green-800 to-gray-900 text-green-200 hover:bg-green-900/80 transition font-semibold shadow-lg"
+        >
+          <FiHome className="text-xl" /> Home Page
+        </button>
         <button
           onClick={handleLogout}
           className="mt-auto flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-red-900 via-red-800 to-gray-900 text-red-200 hover:bg-red-900/80 transition font-semibold shadow-lg"
@@ -516,7 +642,7 @@ function UserDashBoard() {
           <h3 className="text-xl font-bold text-blue-200 mb-4 flex items-center gap-2">
             <FiUser className="text-blue-400" /> Update Profile Picture
           </h3>
-          <UploadImage />
+          <UploadImage onUploadSuccess={fetchUserPhoto} />
         </div>
       </main>
     </div>

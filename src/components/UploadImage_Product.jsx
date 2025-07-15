@@ -1,67 +1,60 @@
-import React, { useState } from "react";
-import { motion } from "framer-motion"; // Import motion for animations
-import { FiUploadCloud, FiImage, FiAlertCircle, FiCheckCircle } from "react-icons/fi"; // Import icons
+import React, { useState } from 'react';
+import { motion } from 'framer-motion'; // For animations
+import { FiUploadCloud, FiImage, FiAlertCircle, FiCheckCircle, FiPackage } from 'react-icons/fi'; // Icons
 
-function UploadImage({ onUploadSuccess }) {
+function UploadImage() {
   const [image, setImage] = useState(null);
-  const [message, setMessage] = useState("");
-  const [url, setUrl] = useState("");
+  const [message, setMessage] = useState('');
+  const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false); // New loading state
   const [error, setError] = useState(false); // New error state
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true); // Start loading
-    setMessage(""); // Clear previous messages
-    setUrl(""); // Clear previous URL
+    setMessage(''); // Clear previous messages
+    setUrl(''); // Clear previous URL
     setError(false); // Clear previous error
 
-    const userid = localStorage.getItem("user_id");
-    console.log("User ID:", userid);
+    const productId = localStorage.getItem('product_id');
+    console.log('Product ID:', productId);
 
-    if (!userid) {
-      setMessage("User not logged in. Please log in to upload.");
+    if (!productId) {
+      setMessage('Product ID not found. Please select a product first.');
       setError(true);
       setLoading(false);
       return;
     }
     if (!image) {
-      setMessage("Please select an image to upload.");
+      setMessage('Please select an image for your product.');
       setError(true);
       setLoading(false);
       return;
     }
 
     const formData = new FormData();
-    formData.append("image", image);
+    formData.append('image', image);
 
     try {
-      const res = await fetch(
-        `http://localhost:5000/api/uploadImage/upload/${userid}`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      const res = await fetch(`http://localhost:5000/api/uploadImage/uploadProduct/${productId}`, {
+        method: 'POST',
+        body: formData,
+      });
       const data = await res.json();
 
       if (res.ok) {
-        setMessage(data.message || "Image uploaded successfully!");
+        setMessage(data.message || 'Product image uploaded successfully!');
         setUrl(data.url);
         setError(false);
-        // Clear the selected file after successful upload for a cleaner UI
-        setImage(null);
-        if (onUploadSuccess) {
-          onUploadSuccess(); // Notify parent to reload the photo
-        }
+        setImage(null); // Clear the selected file input
       } else {
-        setMessage(data.error || "Upload failed. Please try again.");
+        setMessage(data.error || 'Product image upload failed. Please try again.');
         setError(true);
       }
     } catch (err) {
-      setMessage("Network error. Could not connect to the server.");
+      setMessage('Network error. Could not connect to the server to upload image.');
       setError(true);
-      console.error("Upload error:", err);
+      console.error('Upload error:', err);
     } finally {
       setLoading(false); // End loading
     }
@@ -72,21 +65,21 @@ function UploadImage({ onUploadSuccess }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="max-w-md mx-auto p-6 bg-gradient-to-br from-gray-900 to-gray-800 border border-blue-800/40 rounded-xl shadow-lg text-gray-100 font-sans"
+      className="max-w-md mx-auto p-6 bg-gradient-to-br from-gray-900 to-gray-800 border border-purple-800/40 rounded-xl shadow-lg text-gray-100 font-sans"
     >
-      <h2 className="text-3xl font-bold text-center text-blue-300 mb-6 flex items-center justify-center gap-3">
-        <FiUploadCloud className="text-blue-400" /> Upload Profile Photo
+      <h2 className="text-3xl font-bold text-center text-purple-300 mb-6 flex items-center justify-center gap-3">
+        <FiPackage className="text-purple-400" /> Upload Product Image
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label htmlFor="file-upload" className="block text-blue-200 text-lg font-medium mb-2 cursor-pointer">
+          <label htmlFor="product-image-upload" className="block text-purple-200 text-lg font-medium mb-2 cursor-pointer">
             <div className="flex items-center gap-2">
-              <FiImage className="text-blue-400" /> Choose Image
+              <FiImage className="text-purple-400" /> Select Product Image
             </div>
           </label>
           <input
-            id="file-upload"
+            id="product-image-upload"
             type="file"
             accept="image/*"
             onChange={(e) => setImage(e.target.files[0])}
@@ -94,14 +87,14 @@ function UploadImage({ onUploadSuccess }) {
                        file:mr-4 file:py-2 file:px-4
                        file:rounded-full file:border-0
                        file:text-sm file:font-semibold
-                       file:bg-blue-600 file:text-white
-                       hover:file:bg-blue-700 transition-colors
-                       cursor-pointer outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                       file:bg-purple-600 file:text-white
+                       hover:file:bg-purple-700 transition-colors
+                       cursor-pointer outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             required
           />
           {image && (
             <p className="mt-2 text-sm text-gray-400">
-              Selected file: <span className="font-semibold text-blue-300">{image.name}</span>
+              Selected: <span className="font-semibold text-purple-300">{image.name}</span>
             </p>
           )}
         </div>
@@ -112,8 +105,8 @@ function UploadImage({ onUploadSuccess }) {
           whileTap={{ scale: 0.98 }}
           className={`w-full py-3 px-6 rounded-lg font-semibold text-lg transition-all duration-300 ease-in-out flex items-center justify-center gap-2
             ${loading
-              ? "bg-blue-500 cursor-not-allowed opacity-70"
-              : "bg-blue-700 hover:bg-blue-800 text-white shadow-md hover:shadow-lg"
+              ? "bg-purple-500 cursor-not-allowed opacity-70"
+              : "bg-purple-700 hover:bg-purple-800 text-white shadow-md hover:shadow-lg"
             }`}
           disabled={loading}
         >
@@ -155,7 +148,7 @@ function UploadImage({ onUploadSuccess }) {
             href={url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 underline font-medium transition-colors"
+            className="inline-flex items-center gap-2 text-purple-400 hover:text-purple-300 underline font-medium transition-colors"
           >
             <FiImage /> View Uploaded Image
           </a>

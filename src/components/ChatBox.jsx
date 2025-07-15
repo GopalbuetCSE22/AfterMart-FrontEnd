@@ -21,6 +21,8 @@ const ChatBox = ({ productId, sellerId, buyerId, conversationId: initialConversa
         scrollToBottom();
     }, [messages]);
 
+
+    // !start conversation route added using useEffect
     // Effect to start or retrieve conversation ID
     useEffect(() => {
         // If an initialConversationId is provided, we already have the ID, so no need to call startConversation
@@ -48,6 +50,7 @@ const ChatBox = ({ productId, sellerId, buyerId, conversationId: initialConversa
         startConversation();
     }, [productId, buyerId, sellerId, initialConversationId]); // Dependencies: if any of these change, re-run
 
+    //! Fetch message route added using useEffect
     // Effect to fetch messages once conversationId is available
     useEffect(() => {
         if (!conversationId) return; // Don't fetch messages if conversationId isn't set yet
@@ -66,6 +69,7 @@ const ChatBox = ({ productId, sellerId, buyerId, conversationId: initialConversa
         return () => clearInterval(intervalId); // Cleanup on unmount or conversationId change
     }, [conversationId]); // Dependency: re-fetch messages if conversationId changes
 
+    //! Function to handle sending a message
     const handleSendMessage = async () => {
         if (!newMessage.trim() || !conversationId) return;
 
