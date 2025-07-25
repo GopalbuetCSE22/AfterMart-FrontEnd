@@ -1,11 +1,23 @@
+// src/components/ProductCard.jsx
 import React from 'react';
 import { Calendar, User, MapPin, Tag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const ProductCard = ({ product }) => {
+    // Get the current user's ID from localStorage
+    const currentUserId = localStorage.getItem('user_id');
+
+    // Determine the redirection path
+    // If the product's seller_id matches the current user's ID,
+    // redirect to the dashboard edit page. Otherwise, go to the public product view.
+    const redirectTo =
+        currentUserId && String(product.seller_id) === String(currentUserId)
+            ? `/dashboard/product/${product.product_id}` // Redirect to edit page
+            : `/product/${product.product_id}`; // Redirect to public view
+
     return (
         <Link
-            to={`/product/${product.product_id}`}
+            to={redirectTo} // <--- This is the key change
             className="relative group max-w-xs bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden"
         >
             {/* Shine effect */}
@@ -48,12 +60,12 @@ const ProductCard = ({ product }) => {
                 </div>
             </div>
 
-            {}
+            {/* View Details / Edit Button */}
             <div className="px-4 pb-4 z-20">
                 <div
                     className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-2xl shadow-md transition-colors duration-300"
                 >
-                    View Details
+                    {currentUserId && String(product.seller_id) === String(currentUserId) ? "Edit Product" : "View Details"} {/* <--- Changed button text */}
                 </div>
             </div>
 

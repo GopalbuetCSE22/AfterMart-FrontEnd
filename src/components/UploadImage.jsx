@@ -1,23 +1,23 @@
 import React, { useState } from "react";
-import { motion } from "framer-motion"; // Import motion for animations
-import { FiUploadCloud, FiImage, FiAlertCircle, FiCheckCircle } from "react-icons/fi"; // Import icons
+import { motion } from "framer-motion";
+import { FiUploadCloud, FiImage, FiAlertCircle, FiCheckCircle } from "react-icons/fi";
 
 function UploadImage({ onUploadSuccess }) {
   const [image, setImage] = useState(null);
   const [message, setMessage] = useState("");
   const [url, setUrl] = useState("");
-  const [loading, setLoading] = useState(false); // New loading state
-  const [error, setError] = useState(false); // New error state
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true); // Start loading
-    setMessage(""); // Clear previous messages
-    setUrl(""); // Clear previous URL
-    setError(false); // Clear previous error
+    setLoading(true);
+    setMessage("");
+    setUrl("");
+    setError(false);
 
     const userid = localStorage.getItem("user_id");
-    console.log("User ID:", userid);
+    console.log("User ID:", userid); // Keep this for debugging
 
     if (!userid) {
       setMessage("User not logged in. Please log in to upload.");
@@ -49,8 +49,7 @@ function UploadImage({ onUploadSuccess }) {
         setMessage(data.message || "Image uploaded successfully!");
         setUrl(data.url);
         setError(false);
-        // Clear the selected file after successful upload for a cleaner UI
-        setImage(null);
+        setImage(null); // Clear the selected file input
         if (onUploadSuccess) {
           onUploadSuccess(); // Notify parent to reload the photo
         }
@@ -63,7 +62,7 @@ function UploadImage({ onUploadSuccess }) {
       setError(true);
       console.error("Upload error:", err);
     } finally {
-      setLoading(false); // End loading
+      setLoading(false);
     }
   };
 

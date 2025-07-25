@@ -1,6 +1,6 @@
-import React, { use, useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import UploadImage from "../../components/UploadImage";
+import axios from "axios";
 import {
   FiHome,
   FiBox,
@@ -9,8 +9,14 @@ import {
   FiBell,
   FiUser,
   FiLogOut,
+  FiMessageSquare,
+  FiArrowLeft,
 } from "react-icons/fi";
-import Header from "../../components/Header";
+// Removed: import UploadImage from "../../components/UploadImage";
+import ChatBox from "../../components/ChatBox";
+import ProfileImageUploader from "../../components/ProfileImageUploader"; // NEW: Import the new component
+
+const BASE_URL = "http://localhost:5000/api";
 
 // Example logo SVG (replace with your own if needed)
 const Logo = () => (
@@ -29,6 +35,8 @@ const Logo = () => (
 function UserDashBoard() {
   const [activeSection, setActiveSection] = useState("Info");
   const [userPhoto, setUserPhoto] = useState("");
+  const [userPhotoRefreshKey, setUserPhotoRefreshKey] = useState(0);
+
   const [myProducts, setMyProducts] = useState([]);
   const [myProductsLoading, setMyProductsLoading] = useState(false);
   const [myProductsError, setMyProductsError] = useState(null);
@@ -49,42 +57,65 @@ function UserDashBoard() {
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [notificationsError, setNotificationsError] = useState(null);
 
+  const [selectedProductForChat, setSelectedProductForChat] = useState(null);
+  const [productConversations, setProductConversations] = useState([]);
+  const [productConversationsLoading, setProductConversationsLoading] = useState(false);
+  const [productConversationsError, setProductConversationsError] = useState(null);
+  const [activeChatDetails, setActiveChatDetails] = useState(null);
+  const [refreshConversationsTrigger, setRefreshConversationsTrigger] = useState(0);
+
   const navigate = useNavigate();
   const userId = localStorage.getItem("user_id");
 
-  if (!userId) {
-    navigate("/login");
-    alert("You are not logged in. Please log in to access your dashboard.");
-    navigate("/login");
-    return; // Prevent rendering if userId is not found
-  }
   useEffect(() => {
+    if (!userId) {
+      alert("You are not logged in. Please log in to access your dashboard.");
+      navigate("/login");
+    }
+  }, [userId, navigate]);
+
+  const fetchUserPhoto = () => {
     if (userId) {
-      fetch(`http://localhost:5000/api/uploadImage/getProfilePic/${userId}`)
-        .then((res) => res.json())
+      fetch(`${BASE_URL}/uploadImage/getProfilePic/${userId}`)
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return res.json();
+        })
         .then((data) => {
-          if (Array.isArray(data) && data.length > 0) {
-            setUserPhoto(data[0].profile_picture);
+          if (data && data.profile_picture) {
+            setUserPhoto(data.profile_picture);
           } else {
-            setUserPhoto(null);
+            setUserPhoto(DEFAULT_USER_IMAGE); // Use default image if none found
           }
         })
-        .catch(() => setUserPhoto(null));
+        .catch((error) => {
+          console.error("Failed to fetch user photo:", error);
+          setUserPhoto(DEFAULT_USER_IMAGE); // Fallback to default on error
+        });
     }
-  }, [userId]);
+  };
 
   useEffect(() => {
-    if (activeSection === "myProducts" && userId) {
+    fetchUserPhoto();
+  }, [userId, userPhotoRefreshKey]);
+
+  useEffect(() => {
+    if ((activeSection === "myProducts" || activeSection === "chat") && userId) {
       setMyProductsLoading(true);
       setMyProductsError(null);
-      fetch(`http://localhost:5000/api/products/mine?seller_id=${userId}`)
-        .then((res) => res.json())
+      fetch(`${BASE_URL}/products/mine?seller_id=${userId}`)
+        .then((res) => {
+          if (!res.ok) throw new Error("Failed to fetch my products");
+          return res.json();
+        })
         .then((data) => {
           setMyProducts(Array.isArray(data) ? data : []);
           setMyProductsLoading(false);
         })
-        .catch(() => {
-          setMyProductsError("Failed to load your products.");
+        .catch((error) => {
+          setMyProductsError("Failed to load your products: " + error.message);
           setMyProductsLoading(false);
         });
     }
@@ -94,14 +125,22 @@ function UserDashBoard() {
     if (activeSection === "bought" && userId) {
       setBoughtProductsLoading(true);
       setBoughtProductsError(null);
-      fetch(`http://localhost:5000/api/products/boughtProducts/${userId}`)
-        .then((res) => res.json())
+      fetch(`${BASE_URL}/products/boughtProducts/${userId}`)
+        .then((res) => {
+          if (res.status === 404) {
+            setBoughtProducts([]);
+            setBoughtProductsLoading(false);
+            return;
+          }
+          if (!res.ok) throw new Error("Failed to fetch bought products");
+          return res.json();
+        })
         .then((data) => {
           setBoughtProducts(Array.isArray(data) ? data : []);
           setBoughtProductsLoading(false);
         })
-        .catch(() => {
-          setBoughtProductsError("Failed to load bought products.");
+        .catch((error) => {
+          setBoughtProductsError("Failed to load bought products: " + error.message);
           setBoughtProductsLoading(false);
         });
     }
@@ -111,14 +150,17 @@ function UserDashBoard() {
     if (activeSection === "Info" && userId) {
       setUserInfoLoading(true);
       setUserInfoError(null);
-      fetch(`http://localhost:5000/api/users/info/${userId}`)
-        .then((res) => res.json())
+      fetch(`${BASE_URL}/users/info/${userId}`)
+        .then((res) => {
+          if (!res.ok) throw new Error("Failed to fetch user info");
+          return res.json();
+        })
         .then((data) => {
           setUserInfo(data);
           setUserInfoLoading(false);
         })
-        .catch(() => {
-          setUserInfoError("Failed to load user info.");
+        .catch((error) => {
+          setUserInfoError("Failed to load user info: " + error.message);
           setUserInfoLoading(false);
         });
     }
@@ -128,14 +170,17 @@ function UserDashBoard() {
     if (activeSection === "wishlist" && userId) {
       setWishlistLoading(true);
       setWishlistError(null);
-      fetch(`http://localhost:5000/api/products/wishlist/all?user_id=${userId}`)
-        .then((res) => res.json())
+      fetch(`${BASE_URL}/products/wishlist/all?user_id=${userId}`)
+        .then((res) => {
+          if (!res.ok) throw new Error("Failed to fetch wishlist");
+          return res.json();
+        })
         .then((data) => {
           setWishlist(Array.isArray(data) ? data : []);
           setWishlistLoading(false);
         })
-        .catch(() => {
-          setWishlistError("Failed to load wishlist.");
+        .catch((error) => {
+          setWishlistError("Failed to load wishlist: " + error.message);
           setWishlistLoading(false);
         });
     }
@@ -145,38 +190,76 @@ function UserDashBoard() {
     if (activeSection === "notifications" && userId) {
       setNotificationsLoading(true);
       setNotificationsError(null);
-      fetch(`http://localhost:5000/api/notifications/${userId}`)
-        .then((res) => res.json())
+      fetch(`${BASE_URL}/notifications/${userId}`)
+        .then((res) => {
+          if (!res.ok) throw new Error("Failed to fetch notifications");
+          return res.json();
+        })
         .then((data) => {
           setNotifications(Array.isArray(data) ? data : []);
           setNotificationsLoading(false);
         })
-        .catch(() => {
-          setNotificationsError("Failed to load notifications.");
+        .catch((error) => {
+          setNotificationsError("Failed to load notifications: " + error.message);
           setNotificationsLoading(false);
         });
     }
   }, [activeSection, userId]);
 
-  // ! change the userphoto instantly
-  const fetchUserPhoto = () => {
-    if (userId) {
-      fetch(`http://localhost:5000/api/uploadImage/getProfilePic/${userId}`)
-        .then((res) => res.json())
-        .then((data) => {
-          if (Array.isArray(data) && data.length > 0) {
-            setUserPhoto(data[0].profile_picture);
-          } else {
-            setUserPhoto(null);
-          }
-        })
-        .catch(() => setUserPhoto(null));
+  const fetchProductConversations = useCallback(async (productIdToFetch) => {
+    if (!userId || !productIdToFetch) return;
+    setProductConversationsLoading(true);
+    setProductConversationsError(null);
+    try {
+      const res = await axios.get(`${BASE_URL}/messages/conversations`, {
+        params: {
+          productId: productIdToFetch,
+          sellerId: userId,
+        },
+      });
+      setProductConversations(res.data);
+    } catch (err) {
+      console.error("Error fetching product conversations:", err);
+      setProductConversationsError("Failed to load conversations for this product.");
+    } finally {
+      setProductConversationsLoading(false);
     }
-  };
+  }, [userId]);
 
   useEffect(() => {
-    fetchUserPhoto();
-  }, [userId]);
+    if (activeSection === "chat" && selectedProductForChat?.product_id) {
+      fetchProductConversations(selectedProductForChat.product_id);
+      const intervalId = setInterval(() => {
+        fetchProductConversations(selectedProductForChat.product_id);
+      }, 10000);
+      return () => clearInterval(intervalId);
+    }
+  }, [activeSection, selectedProductForChat, fetchProductConversations, refreshConversationsTrigger]);
+
+  // Function to trigger profile photo refresh
+  const handlePhotoUploadSuccess = () => {
+    setUserPhotoRefreshKey((prevKey) => prevKey + 1);
+  };
+
+  const handleSelectProductForChat = (product) => {
+    setSelectedProductForChat(product);
+    setActiveChatDetails(null);
+    setRefreshConversationsTrigger(prev => prev + 1);
+  };
+
+  const handleSelectBuyerConversation = (buyerId, conversationId) => {
+    setActiveChatDetails({
+      productId: selectedProductForChat.product_id,
+      sellerId: userId,
+      buyerId: buyerId,
+      conversationId: conversationId,
+    });
+  };
+
+  const handleChatBoxClose = () => {
+    setActiveChatDetails(null);
+    setRefreshConversationsTrigger((prev) => prev + 1);
+  };
 
   const renderMyProductsTable = () => {
     if (myProductsLoading) {
@@ -227,11 +310,10 @@ function UserDashBoard() {
                 <td className="px-4 py-3 text-gray-100">{prod.price}৳</td>
                 <td className="px-4 py-3">
                   <span
-                    className={`px-2 py-1 rounded text-xs font-semibold ${
-                      prod.isavailable === false
-                        ? "bg-red-700 text-red-100"
-                        : "bg-green-700 text-green-100"
-                    }`}
+                    className={`px-2 py-1 rounded text-xs font-semibold ${prod.isavailable === false
+                      ? "bg-red-700 text-red-100"
+                      : "bg-green-700 text-green-100"
+                      }`}
                   >
                     {prod.isavailable === false ? "Sold" : "Available"}
                   </span>
@@ -307,15 +389,14 @@ function UserDashBoard() {
                 </td>
                 <td className="px-4 py-3">
                   <span
-                    className={`px-2 py-1 rounded text-xs font-semibold ${
-                      item.status === "delivered"
-                        ? "bg-green-700 text-green-100"
-                        : "bg-yellow-700 text-yellow-100"
-                    }`}
+                    className={`px-2 py-1 rounded text-xs font-semibold ${item.status === "delivered"
+                      ? "bg-green-700 text-green-100"
+                      : "bg-yellow-700 text-yellow-100"
+                      }`}
                   >
                     {item.status
                       ? item.status.charAt(0).toUpperCase() +
-                        item.status.slice(1)
+                      item.status.slice(1)
                       : "Pending"}
                   </span>
                 </td>
@@ -411,11 +492,10 @@ function UserDashBoard() {
                 <td className="px-4 py-3 text-gray-100">{prod.price}৳</td>
                 <td className="px-4 py-3">
                   <span
-                    className={`px-2 py-1 rounded text-xs font-semibold ${
-                      prod.isavailable === false
-                        ? "bg-red-700 text-red-100"
-                        : "bg-green-700 text-green-100"
-                    }`}
+                    className={`px-2 py-1 rounded text-xs font-semibold ${prod.isavailable === false
+                      ? "bg-red-700 text-red-100"
+                      : "bg-green-700 text-green-100"
+                      }`}
                   >
                     {prod.isavailable === false ? "Sold" : "Available"}
                   </span>
@@ -453,14 +533,12 @@ function UserDashBoard() {
         {notifications.map((note) => (
           <li
             key={note.id}
-            className={`p-4 rounded-xl shadow-md border ${
-              note.is_read
-                ? "bg-gray-800/80 border-gray-700 text-gray-300"
-                : "bg-yellow-900/30 border-yellow-600 text-yellow-200"
-            }`}
+            className={`p-4 rounded-xl shadow-md border ${note.is_read
+              ? "bg-gray-800/80 border-gray-700 text-gray-300"
+              : "bg-yellow-900/30 border-yellow-600 text-yellow-200"
+              }`}
           >
             <h4 className="text-lg font-semibold">{note.title}</h4>
-            {/* <p className="text-sm mt-1">{note.description}</p> */}
             <p className="text-xs mt-2 text-gray-400">
               {new Date(note.created_at).toLocaleString()}
             </p>
@@ -469,6 +547,98 @@ function UserDashBoard() {
       </ul>
     );
   };
+
+  const renderChatContent = () => {
+    if (!userId) {
+      return <div className="text-red-400 mt-6">User ID not found. Cannot load chat.</div>;
+    }
+
+    if (activeChatDetails) {
+      return (
+        <ChatBox
+          productId={activeChatDetails.productId}
+          sellerId={activeChatDetails.sellerId}
+          buyerId={activeChatDetails.buyerId}
+          conversationId={activeChatDetails.conversationId}
+          currentUserId={userId}
+          onClose={handleChatBoxClose}
+        />
+      );
+    }
+
+    if (selectedProductForChat) {
+      return (
+        <div className="mt-6">
+          <button
+            onClick={() => {
+              setSelectedProductForChat(null);
+              setProductConversations([]);
+            }}
+            className="flex items-center text-blue-400 hover:text-blue-200 transition mb-4"
+          >
+            <FiArrowLeft className="mr-2" /> Back to Product List
+          </button>
+          <h2 className="text-2xl font-semibold text-blue-300 mb-4">
+            Conversations for "{selectedProductForChat.title}"
+          </h2>
+          {productConversationsLoading && <div className="text-blue-400">Loading conversations...</div>}
+          {productConversationsError && <div className="text-red-400">{productConversationsError}</div>}
+          {!productConversationsLoading && !productConversationsError && productConversations.length === 0 && (
+            <p className="text-gray-400">No conversations for this product yet.</p>
+          )}
+          <ul className="space-y-3">
+            {productConversations.map((conv) => (
+              <li
+                key={conv.conversation_id}
+                className="bg-gray-800 p-4 rounded-md hover:bg-gray-700 transition cursor-pointer"
+                onClick={() =>
+                  handleSelectBuyerConversation(conv.buyer_id, conv.conversation_id)
+                }
+              >
+                Buyer: {conv.buyer_name} ({conv.buyer_email})
+                {conv.unread_messages_count > 0 && (
+                  <span className="ml-3 px-2 py-1 bg-blue-600 text-white text-xs rounded-full">
+                    {conv.unread_messages_count} New
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+    }
+
+    return (
+      <div className="mt-6">
+        <h2 className="text-2xl font-semibold text-blue-300 mb-4">
+          Select a Product to View Chats
+        </h2>
+        {myProductsLoading && <div className="text-blue-400">Loading your products...</div>}
+        {myProductsError && <div className="text-red-400">{myProductsError}</div>}
+        {!myProductsLoading && !myProductsError && myProducts.length === 0 && (
+          <p className="text-gray-400">You haven't listed any products yet to receive messages on.</p>
+        )}
+        <ul className="space-y-3">
+          {myProducts.map((prod) => (
+            <li
+              key={prod.product_id}
+              className="bg-gray-800 p-4 rounded-md hover:bg-gray-700 transition cursor-pointer flex justify-between items-center"
+              onClick={() => handleSelectProductForChat(prod)}
+            >
+              <div>
+                <span className="font-medium text-gray-100">{prod.title}</span>
+                <p className="text-sm text-gray-400">{prod.description}</p>
+              </div>
+              <span className="text-sm text-purple-400">
+                View Conversations <FiMessageSquare className="inline-block ml-1" />
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  };
+
 
   const renderMainContent = () => {
     switch (activeSection) {
@@ -532,91 +702,107 @@ function UserDashBoard() {
             {renderNotifications()}
           </>
         );
+      case "chat":
+        return (
+          <>
+            <h1 className="text-4xl font-extrabold text-purple-200 mb-2 flex items-center gap-3 drop-shadow-lg">
+              <FiMessageSquare className="text-purple-400" /> My Chats
+            </h1>
+            <p className="mt-2 text-lg text-gray-400">
+              Manage conversations with buyers for your products.
+            </p>
+            {renderChatContent()}
+          </>
+        );
+      default:
+        return null;
     }
   };
 
-  // Optional: Logout handler
   const handleLogout = () => {
     localStorage.clear();
     navigate("/login");
   };
 
+  if (!userId) {
+    return null;
+  }
+
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-blue-950 via-gray-950 to-blue-900">
       {/* Sidebar */}
-
-      <aside className="w-80 bg-gradient-to-b from-blue-950/95 via-gray-900/90 to-gray-800/90 text-white p-8 space-y-8 fixed h-full shadow-2xl rounded-r-3xl flex flex-col items-center backdrop-blur-2xl border-r border-blue-900/80 z-20">
-        <div className="flex flex-col items-center mb-8">
-          <div className="mb-3">
+      <aside className="w-80 bg-gradient-to-b from-blue-950/95 via-gray-900/90 to-gray-800/90 text-white pt-8 pb-4 px-8 space-y-4 fixed h-full shadow-2xl rounded-r-3xl flex flex-col items-center backdrop-blur-2xl border-r border-blue-900/80 z-20"> {/* Adjusted padding and spacing */}
+        <div className="flex flex-col items-center mb-4"> {/* Adjusted margin-bottom */}
+          {/* <div className="mb-3">
             <Logo />
-          </div>
-          <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-gray-800 via-blue-900 to-black flex items-center justify-center mb-3 shadow-xl border-4 border-blue-900/60 overflow-hidden ring-4 ring-blue-800/40">
-            {userPhoto ? (
-              <img
-                src={userPhoto}
-                alt="user profile"
-                className="w-full h-full object-cover"
-                style={{ maxWidth: "96px", maxHeight: "96px" }}
-              />
-            ) : (
-              <span className="text-4xl font-bold text-gray-300">U</span>
-            )}
-          </div>
+          </div> */}
+          {/* Replaced the old image display with ProfileImageUploader */}
+          <ProfileImageUploader
+            currentImageUrl={`${userPhoto}?t=${userPhotoRefreshKey}`} // Pass current photo URL with cache-busting
+            onUploadSuccess={handlePhotoUploadSuccess} // Pass the refresh callback
+          />
           <h2 className="text-2xl font-bold tracking-wide text-blue-200 drop-shadow-lg">
-            {/* show the user name instead of aftermart */}
             {userInfo ? userInfo.name || "User" : "Loading..."}
           </h2>
         </div>
-        <nav className="flex flex-col w-full space-y-3">
+        <nav className="flex flex-col w-full space-y-2"> {/* Adjusted spacing */}
           <button
-            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${
-              activeSection === "Info"
-                ? "bg-gradient-to-r from-blue-900 via-blue-800 to-gray-900 text-white shadow-xl ring-2 ring-blue-700"
-                : "hover:bg-blue-900/60 hover:text-white text-blue-200"
-            }`}
+            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${activeSection === "Info"
+              ? "bg-gradient-to-r from-blue-900 via-blue-800 to-gray-900 text-white shadow-xl ring-2 ring-blue-700"
+              : "hover:bg-blue-900/60 hover:text-white text-blue-200"
+              }`}
             onClick={() => setActiveSection("Info")}
           >
             <FiHome className="text-xl" /> Info
           </button>
           <button
-            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${
-              activeSection === "myProducts"
-                ? "bg-gradient-to-r from-blue-900 via-blue-800 to-gray-900 text-white shadow-xl ring-2 ring-blue-700"
-                : "hover:bg-blue-900/60 hover:text-white text-blue-200"
-            }`}
+            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${activeSection === "myProducts"
+              ? "bg-gradient-to-r from-blue-900 via-blue-800 to-gray-900 text-white shadow-xl ring-2 ring-blue-700"
+              : "hover:bg-blue-900/60 hover:text-white text-blue-200"
+              }`}
             onClick={() => setActiveSection("myProducts")}
           >
             <FiBox className="text-xl" /> My Products
           </button>
           <button
-            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${
-              activeSection === "bought"
-                ? "bg-gradient-to-r from-blue-900 via-blue-800 to-gray-900 text-white shadow-xl ring-2 ring-blue-700"
-                : "hover:bg-blue-900/60 hover:text-white text-blue-200"
-            }`}
+            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${activeSection === "bought"
+              ? "bg-gradient-to-r from-blue-900 via-blue-800 to-gray-900 text-white shadow-xl ring-2 ring-blue-700"
+              : "hover:bg-blue-900/60 hover:text-white text-blue-200"
+              }`}
             onClick={() => setActiveSection("bought")}
           >
             <FiShoppingBag className="text-xl" /> My Bought Products
           </button>
           <button
-            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${
-              activeSection === "wishlist"
-                ? "bg-gradient-to-r from-pink-900 via-pink-800 to-gray-900 text-white shadow-xl ring-2 ring-pink-700"
-                : "hover:bg-pink-900/60 hover:text-white text-pink-200"
-            }`}
+            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${activeSection === "wishlist"
+              ? "bg-gradient-to-r from-pink-900 via-pink-800 to-gray-900 text-white shadow-xl ring-2 ring-pink-700"
+              : "hover:bg-pink-900/60 hover:text-white text-pink-200"
+              }`}
             onClick={() => setActiveSection("wishlist")}
           >
             <FiHeart className="text-xl" /> Wishlist
           </button>
           <button
-            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${
-              activeSection === "notifications"
-                ? "bg-gradient-to-r from-yellow-900 via-yellow-800 to-gray-900 text-white shadow-xl ring-2 ring-yellow-700"
-                : "hover:bg-yellow-900/60 hover:text-white text-yellow-200"
-            }`}
+            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${activeSection === "notifications"
+              ? "bg-gradient-to-r from-yellow-900 via-yellow-800 to-gray-900 text-white shadow-xl ring-2 ring-yellow-700"
+              : "hover:bg-yellow-900/60 hover:text-white text-yellow-200"
+              }`}
             onClick={() => setActiveSection("notifications")}
           >
             <FiBell className="text-xl" /> Notifications
+          </button>
+          <button
+            className={`flex items-center gap-3 transition-all duration-200 text-left px-5 py-3 rounded-xl font-medium tracking-wide ${activeSection === "chat"
+              ? "bg-gradient-to-r from-purple-900 via-purple-800 to-gray-900 text-white shadow-xl ring-2 ring-purple-700"
+              : "hover:bg-purple-900/60 hover:text-white text-purple-200"
+              }`}
+            onClick={() => {
+              setActiveSection("chat");
+              setSelectedProductForChat(null);
+              setActiveChatDetails(null);
+            }}
+          >
+            <FiMessageSquare className="text-xl" /> Chat
           </button>
         </nav>
         <button
@@ -637,12 +823,6 @@ function UserDashBoard() {
       <main className="flex-1 ml-80 p-12 flex flex-col items-center justify-center min-h-screen">
         <div className="bg-gradient-to-br from-blue-950/90 via-gray-900/90 to-blue-900/90 rounded-3xl shadow-2xl p-10 w-full max-w-3xl min-h-[350px] border border-blue-900/60 ring-1 ring-blue-900/40">
           {renderMainContent()}
-        </div>
-        <div className="mt-10 w-full max-w-2xl bg-gradient-to-br from-blue-950/80 via-gray-900/80 to-blue-900/80 rounded-2xl shadow-xl p-8 border border-blue-900/40">
-          <h3 className="text-xl font-bold text-blue-200 mb-4 flex items-center gap-2">
-            <FiUser className="text-blue-400" /> Update Profile Picture
-          </h3>
-          <UploadImage onUploadSuccess={fetchUserPhoto} />
         </div>
       </main>
     </div>

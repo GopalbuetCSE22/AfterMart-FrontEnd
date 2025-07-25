@@ -113,11 +113,19 @@ const Header = () => {
 
         const token = localStorage.getItem("authToken");
         const userId = localStorage.getItem("user_id");
+        //there is a field in the "User" table named isverified which is boolean
+        const isverified = localStorage.getItem("isverified");
 
         if (!token || !userId) {
             toast.warn("Please log in to sell a product.");
             navigate("/userlogin");
-        } else {
+        }
+
+        //we also need to check if the user is verified or not
+        else if (isverified === "false") {
+            toast.warn("Your account is not verified. Wait for the admin approval.");
+        }
+        else {
             navigate("/sell");
         }
     };
@@ -152,9 +160,10 @@ const Header = () => {
 
                     {!isLoggedIn ? (
                         <>
-                            <a href="/register" className="flex items-center gap-1 text-blue-300 hover:text-blue-200 text-sm">
+                            <a href="/registertype" className="flex items-center gap-1 text-blue-300 hover:text-blue-200 text-sm">
                                 <UserPlus size={16} /> Register
                             </a>
+
                             <a href="/login" className="flex items-center gap-1 text-indigo-300 hover:text-indigo-200 text-sm">
                                 <LogIn size={16} /> Login
                             </a>

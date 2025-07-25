@@ -21,6 +21,7 @@ import UserDashBoard from './pages/DashBoard/UserDashBoard'; // User dashboard
 import DeliveryServiceDashBoard from './pages/DashBoard/DeliveryServiceDashBoard'; // Delivery service dashboard
 import DeliveryManDashBoard from './pages/DashBoard/DeliveryManDashBoard'; // Delivery man dashboard
 import ProductManagementPage from './pages/DashBoard/ProductManagementPage';
+import RegisterTypePage from './pages/RegisterCatagoryPages/RegisterTypePage';
 //productmanagemet
 import ProductSellPage from './pages/ProductSellPage'; // Product sell page
 
@@ -43,10 +44,12 @@ function App() {
 
         {/* Authentication entry points */}
         <Route path="/login" element={<LoginPage />} /> {/* General login page */}
-        <Route path="/register" element={<UserRegisterPage />} /> {/* General user registration */}
+        {/* <Route path="/register" element={<UserRegisterPage />} /> General user registration */}
 
         {/* Specific Registration Pages */}
-        <Route path="/delivaryServiceRegister" element={<DelivaryServiceRegisterPage />} />
+        {/* <Route path="/delivaryServiceRegister" element={<DelivaryServiceRegisterPage />} /> */}
+        <Route path="/register/user" element={<UserRegisterPage />} />
+        <Route path="/register/deliveryservice" element={<DelivaryServiceRegisterPage />} />
 
         {/* Specific Login Pages */}
         <Route path="/userlogin" element={<UserLogin />} />
@@ -67,6 +70,7 @@ function App() {
         <Route path="/terms" element={<div>Terms Page Placeholder</div>} />
         {/* <Route path="/dashboard/product/:productId" element={<ManageProduct />} /> */}
         {/* <Route path="/dashboard/product/:id" element={<ProductManagement />} /> */}
+        <Route path="/registertype" element={<RegisterTypePage />} />
         <Route path="/dashboard/product/:id" element={<ProductManagementPage />} /> {/* Product management page */}
 
         {/* Catch-all route for 404 Not Found */}

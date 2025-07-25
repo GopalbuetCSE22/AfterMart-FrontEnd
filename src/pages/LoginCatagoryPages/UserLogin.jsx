@@ -19,6 +19,7 @@ function UserLogin() {
       setMessage("Login successful!");
 
       localStorage.setItem("user_id", response.data.user_id);
+      localStorage.setItem("isverified", response.data.isverified);
 
       setFormData({ email: "", password: "" });
       navigate("/");
