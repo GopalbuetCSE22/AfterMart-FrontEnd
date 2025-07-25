@@ -1,175 +1,118 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom"; // Import useNavigate for navigation
 import {
-  FaUser,
-  FaUserShield,
-  FaTruckMoving,
-  FaPeopleCarry,
-  FaHome, // Import the Home icon
-} from "react-icons/fa";
+  User,
+  Shield,
+  Truck,
+  Users,
+  Home,
+} from "lucide-react"; // Using lucide-react for icons as per the preferred design
 
 function LoginPage() {
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Initialize the navigate hook
 
-  // Animation variants for the card (for a smooth entrance)
-  const cardVariants = {
-    hidden: { y: 50, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 80, // Soft spring for a smooth feel
-        damping: 15,
-        delay: 0.2,
-        when: "beforeChildren",
-        staggerChildren: 0.1,
-      },
-    },
+  // Navigation functions
+  const navigateToUserLogin = () => {
+    navigate("/userlogin");
   };
 
-  // Animation variants for the buttons (for a staggered entrance)
-  const buttonVariants = {
-    hidden: { scale: 0.8, opacity: 0 },
-    visible: { scale: 1, opacity: 1, transition: { type: "spring", stiffness: 100, damping: 12 } },
+  const navigateToAdminLogin = () => {
+    navigate("/adminlogin");
+  };
+
+  const navigateToDeliveryServiceLogin = () => {
+    navigate("/delivaryServicelogin");
+  };
+
+  const navigateToDeliveryManLogin = () => {
+    navigate("/delivaryManlogin");
+  };
+
+  const navigateToHome = () => {
+    navigate("/");
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 overflow-hidden font-sans">
-      {/* Subtle, **Static** Background */}
-      <div className="absolute inset-0 z-0 opacity-10">
-        {/* Simple grid overlay for a futuristic feel without animation */}
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxlZz48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjk2MjZmIiBzdHJva2Utd2lkdGg9IjAuMiIvPjxyZWN0IHhvPSIwIiB5PSIwIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJub25lIiBzdHJva2U9IiMyOTYyNmYiIHN0cm9rZS13aWR0aD0iMC4xIi8+PC9lZz48L3N2Zz4=')] bg-repeat opacity-5"></div>
-        {/* Very subtle static radial gradient for depth */}
-        <div className="absolute inset-0 bg-radial-gradient from-transparent via-purple-900/10 to-transparent"></div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white flex flex-col items-center justify-center px-4 py-8 font-inter">
+      <h1 className="text-4xl font-bold mb-10 text-center text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-600 drop-shadow-md">
+        Select Login Type
+      </h1>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 max-w-4xl w-full">
+        {/* User Login Card */}
+        <LoginCard
+          label="User"
+          description="For buyers and sellers using AfterMart"
+          icon={<User size={40} />}
+          hoverColor="hover:shadow-blue-500/50 hover:border-blue-400"
+          iconColor="text-blue-400"
+          onClick={navigateToUserLogin}
+        />
+
+        {/* Admin Login Card */}
+        <LoginCard
+          label="Admin"
+          description="For platform administrators and moderators"
+          icon={<Shield size={40} />}
+          hoverColor="hover:shadow-green-500/50 hover:border-green-400"
+          iconColor="text-green-400"
+          onClick={navigateToAdminLogin}
+        />
+
+        {/* Delivery Service Login Card */}
+        <LoginCard
+          label="Delivery Service"
+          description="For logistics companies offering delivery"
+          icon={<Truck size={40} />}
+          hoverColor="hover:shadow-orange-500/50 hover:border-orange-400"
+          iconColor="text-orange-400"
+          onClick={navigateToDeliveryServiceLogin}
+        />
+
+        {/* Delivery Man Login Card */}
+        <LoginCard
+          label="Delivery Man"
+          description="For individual delivery personnel"
+          icon={<Users size={40} />}
+          hoverColor="hover:shadow-purple-500/50 hover:border-purple-400"
+          iconColor="text-purple-400"
+          onClick={navigateToDeliveryManLogin}
+        />
       </div>
 
-      {/* Glassy login card */}
-      <motion.div
-        variants={cardVariants}
-        initial="hidden"
-        animate="visible"
-        className="relative backdrop-blur-xl bg-white/5 border border-purple-500/30 p-12 rounded-3xl shadow-2xl max-w-lg w-full z-10"
-      >
-        {/* Adjusted z-index for the title and increased margin-bottom */}
-        <h1 className="relative z-10 text-3xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600 mb-12 drop-shadow-lg tracking-wide">
-          Login as
-        </h1>
+      {/* Back to Home Button */}
+      <div className="mt-12">
+        <button
+          onClick={navigateToHome}
+          className="flex items-center gap-2 px-6 py-3 rounded-full text-white font-semibold text-lg
+                     bg-slate-700 hover:bg-slate-600 transition-all duration-300 shadow-lg
+                     focus:outline-none focus:ring-2 focus:ring-slate-500"
+        >
+          <Home size={20} /> {/* Increased icon size for better visibility */}
+          Back to Home
+        </button>
+      </div>
 
-        {/* Grid layout for square buttons */}
-        <div className="grid grid-cols-2 gap-6">
-          <motion.div variants={buttonVariants}>
-            <LoginButton
-              label="User"
-              icon={<FaUser />}
-              onClick={() => navigate("/userlogin")}
-              baseColor="blue"
-            />
-          </motion.div>
-          <motion.div variants={buttonVariants}>
-            <LoginButton
-              label="Admin"
-              icon={<FaUserShield />}
-              onClick={() => navigate("/adminlogin")}
-              baseColor="green"
-            />
-          </motion.div>
-          <motion.div variants={buttonVariants}>
-            <LoginButton
-              label="Delivery Service"
-              icon={<FaTruckMoving />}
-              onClick={() => navigate("/delivaryServicelogin")}
-              baseColor="orange"
-            />
-          </motion.div>
-          <motion.div variants={buttonVariants}>
-            <LoginButton
-              label="Delivery Man"
-              icon={<FaPeopleCarry />}
-              onClick={() => navigate("/delivaryManlogin")}
-              baseColor="purple"
-            />
-          </motion.div>
-        </div>
-
-        {/* --- New Home Button Section --- */}
-        <div className="mt-8 text-center"> {/* Increased margin-top slightly */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate("/")} // Navigates to the root (home) page
-            className="inline-flex items-center justify-center px-6 py-3 rounded-full text-white font-semibold text-lg
-                       bg-gradient-to-r from-gray-700 to-gray-800 shadow-lg
-                       hover:from-gray-600 hover:to-gray-700 transition-all duration-300
-                       transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75"
-          >
-            <FaHome className="mr-3 text-xl" /> Back to Home
-          </motion.button>
-        </div>
-        {/* --- End New Home Button Section --- */}
-
-
-        <div className="mt-12 text-center text-sm text-gray-500">
-          © AfterMart 2025 - All Rights Reserved
-        </div>
-      </motion.div>
+      <p className="text-center text-sm text-gray-400 mt-8">© AfterMart 2025 - All Rights Reserved</p>
     </div>
   );
 }
 
-function LoginButton({ label, icon, onClick, baseColor }) {
-  const colorSchemes = {
-    blue: {
-      gradient: "bg-gradient-to-br from-blue-500/10 to-blue-700/10",
-      border: "border-blue-400/30",
-      shadow: "group-hover:shadow-blue",
-    },
-    green: {
-      gradient: "bg-gradient-to-br from-green-500/10 to-green-700/10",
-      border: "border-green-400/30",
-      shadow: "group-hover:shadow-green",
-    },
-    orange: {
-      gradient: "bg-gradient-to-br from-orange-500/10 to-orange-700/10",
-      border: "border-orange-400/30",
-      shadow: "group-hover:shadow-orange",
-    },
-    purple: {
-      gradient: "bg-gradient-to-br from-purple-500/10 to-purple-700/10",
-      border: "border-purple-400/30",
-      shadow: "group-hover:shadow-purple",
-    },
-  };
-
-  const scheme = colorSchemes[baseColor] || colorSchemes.blue;
-
+// LoginCard component from the second example, with minor adjustments
+function LoginCard({ label, description, icon, hoverColor, iconColor, onClick }) {
   return (
-    <motion.button
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
+    <div
       onClick={onClick}
-      className={`relative w-full flex flex-col items-center justify-center p-6
-                    backdrop-blur-md rounded-xl text-white font-semibold text-lg
-                    shadow-md transition-all duration-300 overflow-hidden group
-                    ${scheme.gradient} border ${scheme.border} ${scheme.shadow}`}
-      style={{
-        aspectRatio: '1 / 1'
-      }}
+      className={`cursor-pointer group bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-lg ${hoverColor} transform hover:-translate-y-1 transition duration-300 h-48 flex flex-col items-center justify-center text-center`}
     >
-      <motion.div
-        className="text-5xl mb-3 z-10"
-        initial={{ y: 0 }}
-        whileHover={{ y: -5 }}
-        transition={{ type: "spring", stiffness: 300, damping: 20 }}
-      >
+      <div className={`mb-3 ${iconColor} group-hover:scale-110 transition-transform`}>
         {icon}
-      </motion.div>
-
-      <span className="text-center z-10">{label}</span>
-
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 transform -skew-x-12 -translate-x-full group-hover:translate-x-full z-0"></div>
-    </motion.button>
+      </div>
+      <h2 className="text-xl font-semibold mb-2">{label}</h2>
+      <p className="text-sm text-gray-400 leading-relaxed">
+        {description}
+      </p>
+    </div>
   );
 }
 

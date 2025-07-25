@@ -96,7 +96,7 @@ function DeliveryManDashBoard() {
       });
       // Optionally update UI
       const updatedOrders = [...orders];
-      updatedOrders[idx].status = "Accepted";
+      updatedOrders[idx].status = "ACCEPTED";
       updatedOrders[idx].deliveryman_id = deliveryman_id;
       setOrders(updatedOrders);
       alert("Order accepted!");

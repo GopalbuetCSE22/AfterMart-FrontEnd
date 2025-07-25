@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { User, Mail, Phone, Lock, MapPin, Home, Camera, Loader2, CheckCircle, XCircle } from "lucide-react"; // Added Loader2, CheckCircle, XCircle for feedback
+import { User, Mail, Phone, Lock, MapPin, Home, Camera, Loader2, CheckCircle, XCircle, ArrowLeft } from "lucide-react"; // Added ArrowLeft
 //login page link for redirect after registration
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // Added useNavigate
 
 // Base URL for the Bangladeshi API for location data
 const BDAPI_BASE_URL = "https://bdapi.vercel.app/api/v.1";
@@ -9,6 +9,8 @@ const BDAPI_BASE_URL = "https://bdapi.vercel.app/api/v.1";
 const BACKEND_BASE_URL = "http://localhost:5000/api"; // Centralize backend URL
 
 function UserRegisterPage() {
+  const navigate = useNavigate(); // Add navigate hook
+
   const [formdata, setFormData] = useState({
     name: "",
     email: "",
@@ -227,10 +229,6 @@ function UserRegisterPage() {
       // On successful registration
       setMessage("Registration successful! Your account has been created.");
 
-
-
-
-
       // Clear form data and preview after successful registration
       setFormData({
         name: "",
@@ -259,7 +257,16 @@ function UserRegisterPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4 font-sans">
       <div className="w-full max-w-3xl bg-gray-900/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-700/50 overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-gray-700 to-gray-600 p-8 text-center border-b border-gray-600/50">
+        <div className="bg-gradient-to-r from-gray-700 to-gray-600 p-8 text-center border-b border-gray-600/50 relative">
+          {/* Back Button */}
+          <button
+            onClick={() => navigate('/registertype')}
+            className="absolute left-6 top-1/2 transform -translate-y-1/2 flex items-center gap-2 px-4 py-2 bg-gray-600/50 hover:bg-gray-600/70 text-gray-200 hover:text-white rounded-lg transition-all duration-300 border border-gray-500/30"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span className="text-sm font-medium">Back</span>
+          </button>
+
           <h1 className="text-4xl font-bold text-white mb-2">Create Account</h1>
           <p className="text-gray-300 text-lg">Join our community today</p>
         </div>

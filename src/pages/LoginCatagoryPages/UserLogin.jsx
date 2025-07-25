@@ -60,7 +60,7 @@ function UserLogin() {
         >
           Login
         </button>
-        <a href="/register" className="text-blue-400 hover:underline text-center">
+        <a href="/register/user" className="text-blue-400 hover:underline text-center">
           Don't have an account? Register here
         </a>
         <a href="/" className="text-gray-400 hover:text-blue-400 hover:underline text-center">
