@@ -71,10 +71,21 @@ function DeliveryManDashBoard() {
     axios
       .get(`http://localhost:5000/api/deliveryman/orders/${deliveryman_id}`)
       .then((res) => {
+        // console.log(res);
+        
         setOrders(res.data);
         setLoadingOrders(false);
       })
-      .catch(() => setLoadingOrders(false));
+      .catch((err) => {
+        console.log(err.message);
+        if (err.response && err.response.status === 404) {
+          // No orders found (expected case)
+          setOrders([]); // Show "No incoming orders" UI
+        } else {
+          alert("Failed to load orders. Please try again later.");
+        }
+        setLoadingOrders(false);
+      });
   }, []);
 
   // Accept order handler
