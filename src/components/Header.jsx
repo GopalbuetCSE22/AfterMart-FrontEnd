@@ -18,7 +18,13 @@ const PORT = 5000;
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
+
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedInDeliveryMan, setIsLoggedInDeliveryMan] = useState(false);
+  const [isLoggedInDeliveryCompany, setIsLoggedInDeliveryCompany] =
+    useState(false);
+  const [isLoggedInAdmin, setIsLoggedInAdmin] = useState(false);
+
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [suggestions, setSuggestions] = useState([]);
@@ -29,8 +35,17 @@ const Header = () => {
   // Effect to check login status on component mount and when localStorage changes
   useEffect(() => {
     const checkLoginStatus = () => {
-      const token = localStorage.getItem("authToken");
-      setIsLoggedIn(!!token);
+      const user_id = localStorage.getItem("user_id");
+      setIsLoggedIn(!!user_id);
+
+      const deliverymanID = localStorage.getItem("deliveryman_id");
+      setIsLoggedInDeliveryMan(!!deliverymanID);
+
+      const company_id = localStorage.getItem("company_id");
+      setIsLoggedInDeliveryCompany(!!company_id);
+
+      const admin_id = localStorage.getItem("admin_id");
+      setIsLoggedInAdmin(!!admin_id);
     };
 
     checkLoginStatus();
@@ -49,9 +64,13 @@ const Header = () => {
 
   // Logout function
   const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("user_id");
+    // localStorage.removeItem("authToken");
+    // localStorage.removeItem("user_id");
+    localStorage.clear();
     setIsLoggedIn(false);
+    setIsLoggedInDeliveryCompany(false);
+    setIsLoggedInDeliveryMan(false);
+    setIsLoggedInAdmin(false);
     navigate("/");
     toast.info("You have been logged out.");
   };
@@ -116,6 +135,10 @@ const Header = () => {
 
     const token = localStorage.getItem("authToken");
     const userId = localStorage.getItem("user_id");
+    if (!token || !userId) {
+      toast.warn("You jave to log in as a user to sell any product");
+      return;
+    }
     //there is a field in the "User" table named isverified which is boolean
     // const isverified = localStorage.getItem("isverified");
     // !! have to add a get request to get the inverified
@@ -159,6 +182,20 @@ const Header = () => {
     }
   };
 
+  // Determine the correct dashboard link based on login status
+  const getDashboardLink = () => {
+    if (isLoggedInAdmin) {
+      return "/adminDashboard";
+    } else if (isLoggedInDeliveryMan) {
+      return "/deliverymanDashboard";
+    } else if (isLoggedInDeliveryCompany) {
+      return "/deliveryserviceDashboard";
+    } else if (isLoggedIn) {
+      return "/userDashboard";
+    }
+    return "/"; // Fallback if no specific role is logged in
+  };
+
   return (
     <header
       className={`sticky top-0 z-50 transition-all duration-300 ${
@@ -183,15 +220,18 @@ const Header = () => {
 
         {/* Buttons */}
         <div className="flex items-center space-x-4">
-          <button
+          {/* <button
             className="p-2 hover:bg-white/10 rounded-full transition"
             title="Toggle Dark Mode"
             onClick={toggleDarkMode}
           >
             {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
+          </button> */}
 
-          {!isLoggedIn ? (
+          {!isLoggedIn &&
+          !isLoggedInDeliveryCompany &&
+          !isLoggedInAdmin &&
+          !isLoggedInDeliveryMan ? (
             <>
               <a
                 href="/registertype"
@@ -210,7 +250,7 @@ const Header = () => {
           ) : (
             <>
               <a
-                href="/userDashboard"
+                href={getDashboardLink()}
                 className="flex items-center gap-1 hover:text-blue-200 text-sm"
               >
                 <User size={16} /> Dashboard
