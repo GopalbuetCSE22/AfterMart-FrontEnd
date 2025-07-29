@@ -12,6 +12,9 @@ const ChatBox = ({ productId, sellerId, buyerId, conversationId: initialConversa
     const [newMessage, setNewMessage] = useState("");
     const messagesEndRef = useRef(null);
 
+    const [buyerName, setBuyerName] = useState("Loading...");
+    const [sellerName, setSellerName] = useState("Loading...");
+
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
@@ -21,6 +24,45 @@ const ChatBox = ({ productId, sellerId, buyerId, conversationId: initialConversa
         scrollToBottom();
     }, [messages]);
 
+
+    useEffect(() => {
+        if (buyerId) {
+            const fetchBuyerName = async () => {
+                try {
+                    const res = await axios.get(`${BASE_URL}/users/getName/${buyerId}`); // Assuming an endpoint like /api/users/:id
+                    if (res.data && res.data.name) {
+                        setBuyerName(res.data.name);
+                    } else {
+                        setBuyerName("Unknown Buyer");
+                        console.warn(`No name found for buyer ID: ${buyerId}`);
+                    }
+                } catch (error) {
+                    setBuyerName("Error loading name");
+                    console.error(`Failed to fetch buyer name for ID ${buyerId}:`, error);
+                }
+            };
+            fetchBuyerName();
+        }
+    }, [buyerId]); // Dependency: re-fetch buyer name if buyerId changes
+    useEffect(() => {
+        if (sellerId) {
+            const fetchSellerName = async () => {
+                try {
+                    const res = await axios.get(`${BASE_URL}/users/getName/${sellerId}`); // Assuming an endpoint like /api/users/:id
+                    if (res.data && res.data.name) {
+                        setSellerName(res.data.name);
+                    } else {
+                        setSellerName("Unknown Buyer");
+                        console.warn(`No name found for buyer ID: ${buyerId}`);
+                    }
+                } catch (error) {
+                    setSellerName("Error loading name");
+                    console.error(`Failed to fetch buyer name for ID ${buyerId}:`, error);
+                }
+            };
+            fetchSellerName();
+        }
+    }, [sellerId]); // Dependency: re-fetch buyer name if buyerId changes
 
     // !start conversation route added using useEffect
     // Effect to start or retrieve conversation ID
@@ -101,7 +143,9 @@ const ChatBox = ({ productId, sellerId, buyerId, conversationId: initialConversa
         // Changed the outer div's classes for positioning
         <div className="fixed bottom-4 right-4 bg-slate-900 rounded-lg shadow-lg w-96 flex flex-col h-[500px] text-white z-50">
             <div className="flex items-center justify-between bg-slate-800 px-4 py-2 rounded-t-lg border-b border-slate-700">
-                <h3 className="font-semibold text-lg">Chat (Buyer: {buyerId})</h3>
+                {/* <h3 className="font-semibold text-lg">Chat (Buyer: {buyerId})</h3>
+                <h3 className="font-semibold text-lg">Chat (Seller: {sellerId})</h3> */}
+                <h3 className="font-semibold text-lg">Conversation Between {buyerName} and  {sellerName}</h3>
                 <button onClick={onClose} className="text-slate-400 hover:text-white transition p-1 rounded">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
