@@ -50,7 +50,7 @@ const ProductSellPage = () => {
     const deliveryModeOptions = [
         { label: 'Select Delivery Mode', value: '' },
         { label: 'Delivery', value: 'delivery' },
-        { label: 'Pickup', value: 'pickup' },
+        // { label: 'Pickup', value: 'pickup' },
     ];
 
     useEffect(() => {
