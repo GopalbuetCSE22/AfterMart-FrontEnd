@@ -13,12 +13,12 @@ import { Loader, SearchX } from 'lucide-react';
 const PORT = 5000;
 
 const SearchResultPage = () => {
-    const location = useLocation();
-    const navigate = useNavigate();
-    //pull the page attention to the top of the page when first loaded
-    useEffect(() => {
-        window.scrollTo(0, 0); // Scroll to top on component mount
-    }, []);
+  const location = useLocation();
+  const navigate = useNavigate();
+  //pull the page attention to the top of the page when first loaded
+  useEffect(() => {
+    window.scrollTo(0, 0); // Scroll to top on component mount
+  }, []);
 
 
   const parseQueryParams = useCallback(() => {

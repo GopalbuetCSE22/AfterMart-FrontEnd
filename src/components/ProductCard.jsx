@@ -1,4 +1,4 @@
-// src/components/ProductCard.jsx
+
 import React from 'react';
 import { Calendar, User, MapPin, Tag } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -16,7 +16,7 @@ const ProductCard = ({ product }) => {
     return (
         <Link
             to={redirectTo}
-            className="relative group max-w-xs h-96 rounded-2xl shadow-md hover:shadow-xl transition-all duration-500 cursor-pointer overflow-hidden flex flex-col"
+            className="relative group w-full h-96 rounded-2xl shadow-md hover:shadow-xl transition-all duration-500 cursor-pointer overflow-hidden flex flex-col"
         >
             {/* Multi-layered neon glow effect (z-0) */}
             {/* This div creates a wide, blurry glow */}

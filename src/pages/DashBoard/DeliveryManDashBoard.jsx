@@ -82,7 +82,22 @@ function DeliveryManDashBoard() {
       const profileRes = await axios.get(
         `http://localhost:5000/api/deliveryman/profile/${deliveryman_id}`
       );
-      setProfile(profileRes.data);
+      const rawProfileData = profileRes.data;
+
+      // FIX: De-duplicate preferred_areas before setting the profile state
+      if (rawProfileData && rawProfileData.preferred_areas) {
+        const uniquePreferredAreas = Array.from(
+          new Map(
+            rawProfileData.preferred_areas.map((area) => [
+              `${area.division}-${area.district}-${area.ward}-${area.area}`, // Create a unique key for each area
+              area, // Store the original area object as the value
+            ])
+          ).values()
+        );
+        setProfile({ ...rawProfileData, preferred_areas: uniquePreferredAreas });
+      } else {
+        setProfile(rawProfileData); // Set as is if no preferred_areas or if it's null
+      }
     } catch (err) {
       console.error("Failed to load profile:", err);
       setProfile(null);
@@ -293,7 +308,7 @@ function DeliveryManDashBoard() {
                   <td className="py-3 px-5 border-b border-gray-700 text-gray-200">
                     <span
                       className={`px-2 py-1 rounded-full text-xs font-semibold
-                                    ${order.shipment_status === null ? 'bg-blue-600' : // Available status for pending purchases
+                                        ${order.shipment_status === null ? 'bg-blue-600' : // Available status for pending purchases
                           ['ACCEPTED', 'Under Shipment'].includes(order.shipment_status) ? 'bg-yellow-600' : // Under Shipment status for assigned but not delivered
                             order.shipment_status === 'DELIVERED' ? 'bg-emerald-600' : 'bg-gray-600' // Delivered or other statuses
                         }`}
@@ -383,7 +398,7 @@ function DeliveryManDashBoard() {
                     <div className="flex flex-wrap gap-2 pt-1">
                       {profile.preferred_areas.map((pArea, index) => (
                         <span
-                          key={index}
+                          key={index} // It's generally better to use a unique ID from the data if available, but index is okay if areas are truly unique after de-duplication
                           className="bg-emerald-700/70 text-white text-sm px-3 py-1 rounded-full shadow-sm"
                         >
                           {pArea.division}, {pArea.district}, {pArea.ward}, {pArea.area}

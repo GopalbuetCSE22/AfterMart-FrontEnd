@@ -329,6 +329,7 @@ function UserDashBoard() {
                   <button
                     className="ml-3 text-sm bg-blue-700 hover:bg-blue-800 text-white px-3 py-1 rounded-md shadow"
                     onClick={() =>
+                      
                       navigate(`/dashboard/product/${prod.product_id}`)
                     }
                   >
