@@ -197,8 +197,6 @@ const ChatBox = ({ productId, sellerId, buyerId, conversationId: initialConversa
 
     // Function to handle deleting a message
     const handleDeleteMessage = useCallback(async (messageId) => {
-        // IMPORTANT: As per instructions, avoid window.confirm. A custom modal should be used here.
-        // For now, keeping window.confirm as it was in the original code, but noting this for future improvements.
         if (!window.confirm("Are you sure you want to delete this message? This action cannot be undone.")) {
             return; // If user cancels, do nothing
         }

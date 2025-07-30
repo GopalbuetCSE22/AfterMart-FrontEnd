@@ -18,7 +18,7 @@ import ChatBox from "../../components/ChatBox";
 import ProfileImageUploader from "../../components/ProfileImageUploader"; // NEW: Import the new component
 
 const BASE_URL = "http://localhost:5000/api";
-
+const DEFAULT_USER_IMAGE = "https://www.vecteezy.com/free-vector/default-user";
 // Example logo SVG (replace with your own if needed)
 const Logo = () => (
   <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
@@ -97,6 +97,7 @@ function UserDashBoard() {
           if (data && data.profile_picture) {
             setUserPhoto(data.profile_picture);
           } else {
+
             setUserPhoto(DEFAULT_USER_IMAGE); // Use default image if none found
           }
         })
@@ -428,8 +429,8 @@ function UserDashBoard() {
                   </span>
                 </td>
                 <td className="px-4 py-3 text-gray-400">
-                  {item.accepted_at
-                    ? new Date(item.accepted_at).toLocaleDateString()
+                  {item.created_at
+                    ? new Date(item.created_at).toLocaleDateString()
                     : "-"}
                   {/* const getBroughtProductsQuery = `
                   SELECT pr.title,pr.seller_id, pr.price, dm.name ,dm.phone , s.accepted_at,s.status , p.purchase_id, pr.product_id,s.shipment_id,s.deliveryman_id
