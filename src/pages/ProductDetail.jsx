@@ -274,7 +274,7 @@ const ProductDetail = () => {
           const res = await axios.get(
             `${BASE_URL}/reviews/fromSellerInfo/${sellerId}`
           );
-          console.log(res.data.reviews);
+        //   console.log(res.data.reviews);
 
           setAverageRating(res.data.averageRating);
           setReviews(res.data.reviews);
@@ -352,7 +352,7 @@ const ProductDetail = () => {
                   </div>
                 </div>
                 <p className="text-gray-300 text-sm mb-2 leading-relaxed">
-                  {r.comment}
+                  {r.content}
                 </p>
                 <p className="text-blue-300 text-xs font-medium mt-2">
                   Product: {r.product_name}
@@ -367,6 +367,7 @@ const ProductDetail = () => {
         )}
       </div>
     );
+    
   };
 
   return (
