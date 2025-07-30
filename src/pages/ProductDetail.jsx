@@ -46,7 +46,6 @@ const ProductDetail = () => {
                 setMainImageIndex(0); // Reset main image index when images are fetched
             } catch (err) {
                 console.error("Error fetching product details:", err);
-                // More specific error message for different HTTP statuses
                 if (err.response && err.response.status === 404) {
                     setError('Product not found.');
                 } else {
@@ -103,19 +102,53 @@ const ProductDetail = () => {
             navigate("/userlogin");
             return;
         }
+
         if (product && parseInt(userId) === product.seller_id) {
             toast.warn("You cannot purchase your own product.");
             return;
         }
 
         try {
+            // Step 1: Fetch user verification status
+            const response = await fetch(
+                `${BASE_URL}/users/isVerified/${userId}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Failed to verify user status.");
+            }
+
+            const userData = await response.json();
+            const isVerified = userData.isverified;
+
+            // Step 2: If not verified, block the purchase
+            if (!isVerified) {
+                toast.warn("Your account is not verified. Please wait for admin approval before purchasing.");
+                return;
+            }
+
+            // Step 3: Proceed with purchase if verified
             const res = await axios.patch(
-                `${BASE_URL}/products/buyProduct/${userId}/${id}`
+                `${BASE_URL}/products/buyProduct/${userId}/${id}`,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
             );
             toast.success(res.data.message || "Purchase successful!");
-            // You might want to refresh product data or redirect after purchase if status changes
+            // Optional: Refresh or redirect here
+
         } catch (err) {
-            console.error("Error purchasing product:", err);
+            console.error("Error during purchase:", err);
             if (err.response) {
                 if (err.response.status === 401) {
                     toast.error("Session expired. Please log in again.");
@@ -131,6 +164,7 @@ const ProductDetail = () => {
         }
     };
 
+
     // Toggles the chatbox visibility
     const handleChatClick = () => {
         const { token, userId } = getAuthInfo();
@@ -142,7 +176,6 @@ const ProductDetail = () => {
         // Prevent seller from chatting with themselves about their product via this button
         if (product && parseInt(userId) === product.seller_id) {
             toast.warn("You are the seller of this product.");
-            // Optionally, navigate to dashboard or a different chat view
             return;
         }
         setIsChatOpen(true);
@@ -156,7 +189,7 @@ const ProductDetail = () => {
             case '1_3_years': return '1 to 3 years';
             case '3_5_years': return '3 to 5 years';
             case 'more_than_5_years': return 'More than 5 years';
-            default: return 'N/A'; // Fallback for undefined/null or unexpected values
+            default: return 'N/A';
         }
     };
 
@@ -184,15 +217,13 @@ const ProductDetail = () => {
         );
     }
 
-    // This case should ideally be caught by `error` state if 404 is returned,
-    // but as a fallback, explicitly handle if product is null after loading.
     if (!product) {
         return (
             <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center p-6">
                 <h2 className="text-3xl text-yellow-500 font-bold mb-4">Product Not Found</h2>
                 <p className="text-xl text-gray-300 mb-6">The product you are looking for does not exist or has been removed.</p>
                 <button
-                    onClick={() => navigate('/products')} // Or home, depending on your app flow
+                    onClick={() => navigate('/products')}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg shadow-md transition"
                 >
                     Browse Other Products
@@ -201,9 +232,7 @@ const ProductDetail = () => {
         );
     }
 
-    // Only proceed to render the main content if 'product' is loaded
     const currentUserId = localStorage.getItem('user_id');
-    // Ensure both are numbers for safe comparison
     const isSeller = product.seller_id && currentUserId ? parseInt(currentUserId) === product.seller_id : false;
 
     return (
@@ -213,12 +242,11 @@ const ProductDetail = () => {
                 <div className="flex flex-col md:flex-row gap-10">
                     {/* Image Section */}
                     <div className="md:w-1/2">
-                        <div className="rounded-2xl overflow-hidden shadow-lg mb-4 bg-slate-800">
+                        <div className="rounded-2xl overflow-hidden shadow-lg mb-4 bg-slate-800 flex items-center justify-center h-96"> {/* Increased height and added flex for centering */}
                             <img
-                                // Use optional chaining for images array and its elements
                                 src={images[mainImageIndex]?.image || 'https://placehold.co/600x400/334155/E2E8F0?text=No+Image'}
                                 alt={`Main Product: ${product.title || 'Product'}`}
-                                className="w-full h-80 object-cover"
+                                className="max-h-full max-w-full object-contain" // Changed to object-contain and max-h/max-w
                                 onError={(e) => {
                                     e.target.onerror = null;
                                     e.target.src = 'https://placehold.co/600x400/334155/E2E8F0?text=No+Image';
@@ -226,10 +254,10 @@ const ProductDetail = () => {
                             />
                         </div>
                         <div className="flex gap-3 overflow-x-auto pb-2">
-                            {images.length > 0 ? ( // Only map if images exist
+                            {images.length > 0 ? (
                                 images.map((imgObj, idx) => (
                                     <img
-                                        key={imgObj.media_id || idx} // Use media_id if available for better keys
+                                        key={imgObj.media_id || idx}
                                         src={imgObj.image || 'https://placehold.co/80x80/334155/E2E8F0?text=N/A'}
                                         alt={`Thumbnail ${idx + 1}`}
                                         className={`w-20 h-20 object-cover rounded-xl cursor-pointer border-2 transition-all duration-300 ${idx === mainImageIndex ? 'border-blue-400 shadow-md' : 'border-transparent'}`}
@@ -240,7 +268,7 @@ const ProductDetail = () => {
                                         }}
                                     />
                                 ))
-                            ) : ( // Show a placeholder thumbnail if no images
+                            ) : (
                                 <img
                                     src="https://placehold.co/80x80/334155/E2E8F0?text=No+Images"
                                     alt="No images available"
@@ -311,7 +339,6 @@ const ProductDetail = () => {
                             <button
                                 onClick={handleChatClick}
                                 className="bg-blue-500/20 hover:bg-blue-600/30 text-blue-300 px-5 py-2 rounded-full backdrop-blur-md border border-blue-300 transition flex items-center gap-2"
-                                // Disable chat button if current user is the seller
                                 disabled={isSeller}
                             >
                                 <MessageSquare size={18} /> {isSeller ? "You are the Seller" : "Chat with Seller"}
@@ -320,7 +347,6 @@ const ProductDetail = () => {
                             <button
                                 onClick={handlePurchase}
                                 className="bg-green-500/20 hover:bg-green-600/30 text-green-300 px-5 py-2 rounded-full backdrop-blur-md border border-green-300 transition flex items-center gap-2"
-                                // Disable purchase button if current user is the seller
                                 disabled={isSeller}
                             >
                                 <ShoppingCart size={18} /> {isSeller ? "Your Product" : "Purchase"}
@@ -336,7 +362,7 @@ const ProductDetail = () => {
                     <ChatBox
                         productId={product.product_id}
                         sellerId={product.seller_id}
-                        buyerId={isSeller ? null : parseInt(currentUserId)} // Ensure buyerId is a number or null
+                        buyerId={isSeller ? null : parseInt(currentUserId)}
                         currentUserId={currentUserId}
                         onClose={() => setIsChatOpen(false)}
                     />

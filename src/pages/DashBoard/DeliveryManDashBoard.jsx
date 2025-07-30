@@ -1,15 +1,21 @@
+// DeliveryManDashBoard.jsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
   FiStar,
   FiUser,
   FiMail,
+  FiPhone,
   FiTruck,
   FiMapPin,
-  FiBox,
+  FiBox,     // For Available Orders
   FiLock,
+  FiArchive, // For Delivered Shipments
+  FiClock,   // For Under Shipment Orders
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+
+// StarRating component remains unchanged
 function StarRating({ rating }) {
   const safeRating = typeof rating === "number" && !isNaN(rating) ? rating : 0;
   const fullStars = Math.floor(safeRating);
@@ -42,9 +48,15 @@ function StarRating({ rating }) {
 
 function DeliveryManDashBoard() {
   const [profile, setProfile] = useState(null);
-  const [orders, setOrders] = useState([]);
+  const [availableOrders, setAvailableOrders] = useState([]);
+  const [underShipmentOrders, setUnderShipmentOrders] = useState([]);
+  const [deliveredOrders, setDeliveredOrders] = useState([]);
+
   const [loadingProfile, setLoadingProfile] = useState(true);
-  const [loadingOrders, setLoadingOrders] = useState(true);
+  const [loadingAvailable, setLoadingAvailable] = useState(true);
+  const [loadingUnderShipment, setLoadingUnderShipment] = useState(true);
+  const [loadingDelivered, setLoadingDelivered] = useState(true);
+
   const [passwordData, setPasswordData] = useState({
     oldPassword: "",
     newPassword: "",
@@ -53,89 +65,131 @@ function DeliveryManDashBoard() {
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordMsg, setPasswordMsg] = useState(null);
 
-  useEffect(() => {
+  const navigate = useNavigate();
+
+  // Helper function to fetch all dashboard data
+  const fetchDeliveryManData = async () => {
     const deliveryman_id = localStorage.getItem("deliveryman_id");
     if (!deliveryman_id) {
       alert("Deliveryman ID not found. Please log in again.");
+      navigate("/login");
       return;
     }
-    // Fetch profile
-    axios
-      .get(`http://localhost:5000/api/deliveryman/profile/${deliveryman_id}`)
-      .then((res) => {
-        setProfile(res.data);
-        setLoadingProfile(false);
-      })
-      .catch(() => setLoadingProfile(false));
-    // Fetch orders
-    axios
-      .get(`http://localhost:5000/api/deliveryman/orders/${deliveryman_id}`)
-      .then((res) => {
-        // console.log(res);
-        
-        setOrders(res.data);
-        setLoadingOrders(false);
-      })
-      .catch((err) => {
-        console.log(err.message);
-        if (err.response && err.response.status === 404) {
-          // No orders found (expected case)
-          setOrders([]); // Show "No incoming orders" UI
-        } else {
-          alert("Failed to load orders. Please try again later.");
-        }
-        setLoadingOrders(false);
-      });
-  }, []);
 
-  // Accept order handler
-  const handleAcceptOrder = async (order, idx) => {
+    // Fetch profile
+    setLoadingProfile(true);
     try {
-      const deliveryman_id = localStorage.getItem("deliveryman_id");
-      if (!deliveryman_id) {
-        alert("Deliveryman ID not found.");
-        navigate("/login");
-        return;
-      }
-      if (!order.shipment_id) {
-        alert("Shipment ID not found for this order.");
-        return;
-      }
-      await axios.post(`http://localhost:5000/api/deliveryman/acceptshipment`, {
-        shipmentId: order.shipment_id,
-        deliverymanId: deliveryman_id,
-      });
-      // Optionally update UI
-      const updatedOrders = [...orders];
-      updatedOrders[idx].status = "ACCEPTED";
-      updatedOrders[idx].deliveryman_id = deliveryman_id;
-      setOrders(updatedOrders);
-      alert("Order accepted!");
-    } catch (error) {
-      alert("Failed to accept order.");
+      const profileRes = await axios.get(
+        `http://localhost:5000/api/deliveryman/profile/${deliveryman_id}`
+      );
+      setProfile(profileRes.data);
+    } catch (err) {
+      console.error("Failed to load profile:", err);
+      setProfile(null);
+    } finally {
+      setLoadingProfile(false);
+    }
+
+    // Fetch Available Orders
+    setLoadingAvailable(true);
+    try {
+      const availableRes = await axios.get(
+        `http://localhost:5000/api/deliveryman/orders/available/${deliveryman_id}`
+      );
+      setAvailableOrders(availableRes.data);
+    } catch (err) {
+      console.error("Failed to load available orders:", err);
+      setAvailableOrders([]);
+    } finally {
+      setLoadingAvailable(false);
+    }
+
+    // Fetch Under Shipment Orders
+    setLoadingUnderShipment(true);
+    try {
+      const underShipmentRes = await axios.get(
+        `http://localhost:5000/api/deliveryman/orders/under-shipment/${deliveryman_id}`
+      );
+      setUnderShipmentOrders(underShipmentRes.data);
+    } catch (err) {
+      console.error("Failed to load under shipment orders:", err);
+      setUnderShipmentOrders([]);
+    } finally {
+      setLoadingUnderShipment(false);
+    }
+
+    // Fetch Delivered Orders
+    setLoadingDelivered(true);
+    try {
+      const deliveredRes = await axios.get(
+        `http://localhost:5000/api/deliveryman/orders/delivered/${deliveryman_id}`
+      );
+      setDeliveredOrders(deliveredRes.data);
+    } catch (err) {
+      console.error("Failed to load delivered orders:", err);
+      setDeliveredOrders([]);
+    } finally {
+      setLoadingDelivered(false);
     }
   };
 
-  // Mark as delivered handler
-  const handleDelivered = async (order, idx) => {
+  useEffect(() => {
+    fetchDeliveryManData();
+  }, []);
+
+  // Handles accepting an available purchase
+  const handleAcceptOrder = async (order) => {
+    try {
+      const deliveryman_id = localStorage.getItem("deliveryman_id");
+      if (!deliveryman_id) {
+        alert("Deliveryman ID not found. Please log in again.");
+        navigate("/login");
+        return;
+      }
+      if (!order.purchase_id) {
+        alert("Purchase ID not found for this order. Cannot accept.");
+        return;
+      }
+
+      await axios.post(`http://localhost:5000/api/deliveryman/acceptpurchase`, {
+        purchaseId: order.purchase_id,
+        deliverymanId: deliveryman_id,
+      });
+
+      // After accepting, re-fetch all data to refresh sections
+      await fetchDeliveryManData();
+      alert("Purchase accepted and shipment created!");
+    } catch (error) {
+      console.error("Error accepting purchase:", error);
+      alert(
+        error.response?.data?.message || "Failed to accept purchase. Please try again."
+      );
+    }
+  };
+
+  // Handles marking an "under shipment" order as delivered
+  const handleDelivered = async (order) => {
     try {
       if (!order.shipment_id) {
-        alert("Shipment ID not found for this order.");
+        alert("Shipment ID not found for this order. Cannot mark as delivered.");
         return;
       }
       await axios.patch(
         `http://localhost:5000/api/deliveryman/markdelivered/${order.shipment_id}`
       );
-      const updatedOrders = [...orders];
-      updatedOrders[idx].status = "Delivered";
-      setOrders(updatedOrders);
-      alert("Order marked as delivered!");
+
+      // After marking delivered, re-fetch all data to refresh sections
+      await fetchDeliveryManData();
+      alert("Shipment marked as delivered!");
     } catch (error) {
-      alert("Failed to mark as delivered.");
+      console.error("Error marking shipment as delivered:", error);
+      alert(
+        error.response?.data?.message || "Failed to mark as delivered. Please try again."
+      );
     }
   };
 
-  // Password change handler
+  // Handles changing the deliveryman's password
   const handleChangePassword = async (e) => {
     e.preventDefault();
     setPasswordMsg(null);
@@ -181,11 +235,107 @@ function DeliveryManDashBoard() {
       setPasswordLoading(false);
     }
   };
-  const navigate = useNavigate();
+
+  // Handles user logout
   const handleLogout = () => {
     localStorage.clear();
     navigate("/login");
   };
+
+  // Helper for rendering order tables based on data, loading state, title, icon, and empty message
+  const renderOrderTable = (ordersArray, loadingState, title, icon, emptyMessage) => (
+    <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl p-8 border border-gray-800">
+      <h2 className="text-2xl font-extrabold mb-6 text-emerald-300 flex items-center gap-2">
+        {icon} {title}
+      </h2>
+      {loadingState ? (
+        <div className="text-gray-300">Loading {title.toLowerCase()}...</div>
+      ) : ordersArray.length === 0 ? (
+        <div className="text-gray-500 text-center">{emptyMessage}</div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full border border-gray-800 rounded-lg overflow-hidden shadow">
+            <thead>
+              <tr className="bg-gray-800/80">
+                <th className="py-3 px-5 border-b text-emerald-300 font-semibold text-left">
+                  Buyer Name
+                </th>
+                <th className="py-3 px-5 border-b text-emerald-300 font-semibold text-left">
+                  Destination Address
+                </th>
+                <th className="py-3 px-5 border-b text-emerald-300 font-semibold text-left">
+                  Total Price
+                </th>
+                <th className="py-3 px-5 border-b text-emerald-300 font-semibold text-left">
+                  Status
+                </th>
+                <th className="py-3 px-5 border-b text-emerald-300 font-semibold text-left">
+                  Action
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {ordersArray.map((order) => (
+                <tr
+                  key={order.purchase_id} // Use purchase_id as key
+                  className="bg-gray-900/80 hover:bg-gray-800/60 transition"
+                >
+                  <td className="py-3 px-5 border-b border-gray-700 text-gray-200">
+                    {order.buyer_name}
+                  </td>
+                  <td className="py-3 px-5 border-b border-gray-700 text-gray-200 text-sm">
+                    {order.delivery_division}, {order.delivery_district},{" "}
+                    {order.delivery_ward}, {order.delivery_area}
+                  </td>
+                  <td className="py-3 px-5 border-b border-gray-700 text-gray-200">
+                    ৳{order.total_price}
+                  </td>
+                  <td className="py-3 px-5 border-b border-gray-700 text-gray-200">
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-semibold
+                                    ${order.shipment_status === null ? 'bg-blue-600' : // Available status for pending purchases
+                          ['ACCEPTED', 'Under Shipment'].includes(order.shipment_status) ? 'bg-yellow-600' : // Under Shipment status for assigned but not delivered
+                            order.shipment_status === 'DELIVERED' ? 'bg-emerald-600' : 'bg-gray-600' // Delivered or other statuses
+                        }`}
+                    >
+                      {order.shipment_status === null ? "Available" : order.shipment_status}
+                    </span>
+                  </td>
+                  <td className="py-3 px-5 border-b border-gray-700 flex gap-2 items-center">
+                    {/* Action buttons based on shipment_status */}
+                    {order.shipment_status === null ? (
+                      <button
+                        className="px-4 py-1 rounded shadow transition font-semibold bg-emerald-600 hover:bg-emerald-700 text-white"
+                        onClick={() => handleAcceptOrder(order)}
+                      >
+                        Accept Purchase
+                      </button>
+                    ) : (
+                      // Only show Mark as Delivered button if shipment is not yet delivered
+                      ['ACCEPTED', 'Under Shipment'].includes(order.shipment_status) ? (
+                        <button
+                          className="px-4 py-1 rounded shadow bg-yellow-600 hover:bg-yellow-700 text-white font-semibold transition"
+                          onClick={() => handleDelivered(order)}
+                        >
+                          Mark as Delivered
+                        </button>
+                      ) : (
+                        // For DELIVERED shipments, show status text
+                        <span className="px-4 py-1 rounded bg-gray-700 text-emerald-400 font-semibold">
+                          Delivered
+                        </span>
+                      )
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black p-8">
       <div className="max-w-5xl mx-auto flex flex-col gap-10">
@@ -211,6 +361,10 @@ function DeliveryManDashBoard() {
                   <span className="font-semibold">Email:</span> {profile.email}
                 </div>
                 <div className="flex items-center gap-2">
+                  <FiPhone className="text-emerald-400" />
+                  <span className="font-semibold">Phone:</span> {profile.phone}
+                </div>
+                <div className="flex items-center gap-2">
                   <FiTruck className="text-emerald-400" />
                   <span className="font-semibold">Vehicle Type:</span>{" "}
                   {profile.vehicle_type}
@@ -220,13 +374,25 @@ function DeliveryManDashBoard() {
                   <span className="font-semibold">Deliveries:</span>{" "}
                   {profile.delivery_count || 0}
                 </div>
-                <div className="flex items-center gap-2">
-                  <FiMapPin className="text-emerald-400" />
-                  <span className="font-semibold">Preferred Area:</span>
-                  <span>
-                    {profile.division}, {profile.district}, {profile.ward},{" "}
-                    {profile.area}
-                  </span>
+                <div className="text-gray-200">
+                  <div className="flex items-center gap-2 mb-1">
+                    <FiMapPin className="text-emerald-400" />
+                    <span className="font-semibold">Preferred Areas:</span>
+                  </div>
+                  {profile.preferred_areas && profile.preferred_areas.length > 0 ? (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {profile.preferred_areas.map((pArea, index) => (
+                        <span
+                          key={index}
+                          className="bg-emerald-700/70 text-white text-sm px-3 py-1 rounded-full shadow-sm"
+                        >
+                          {pArea.division}, {pArea.district}, {pArea.ward}, {pArea.area}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm italic">No preferred areas set.</p>
+                  )}
                 </div>
               </div>
             </>
@@ -235,91 +401,32 @@ function DeliveryManDashBoard() {
           )}
         </div>
 
-        {/* Incoming Orders Section */}
-        <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl p-8 border border-gray-800">
-          <h2 className="text-2xl font-extrabold mb-6 text-emerald-300 flex items-center gap-2">
-            <FiBox className="text-emerald-400" /> Incoming Orders
-          </h2>
-          {loadingOrders ? (
-            <div className="text-gray-300">Loading orders...</div>
-          ) : orders.length === 0 ? (
-            <div className="text-gray-500 text-center">No incoming orders.</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full border border-gray-800 rounded-lg overflow-hidden shadow">
-                <thead>
-                  <tr className="bg-gray-800/80">
-                    <th className="py-3 px-5 border-b text-emerald-300 font-semibold">
-                      Buyer Name
-                    </th>
-                    <th className="py-3 px-5 border-b text-emerald-300 font-semibold">
-                      Total Price
-                    </th>
-                    <th className="py-3 px-5 border-b text-emerald-300 font-semibold">
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders.map((order, idx) => (
-                    <tr
-                      key={idx}
-                      className="bg-gray-900/80 hover:bg-gray-800/60 transition"
-                    >
-                      <td className="py-3 px-5 border-b text-gray-200">
-                        {order.name}
-                      </td>
-                      <td className="py-3 px-5 border-b text-gray-200">
-                        ৳{order.total_price}
-                      </td>
-                      <td className="py-3 px-5 border-b flex gap-2">
-                        <button
-                          className={`px-4 py-1 rounded shadow transition font-semibold
-                            ${
-                              order.status === "Accepted" ||
-                              order.deliveryman_id != null
-                                ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-                                : "bg-emerald-600 hover:bg-emerald-700 text-white"
-                            }
-                          `}
-                          onClick={() => handleAcceptOrder(order, idx)}
-                          disabled={
-                            order.status === "ACCEPTED" ||
-                            order.deliveryman_id != null ||
-                            order.status === "DELIVERED"
-                          }
-                        >
-                          {order.status === "ACCEPTED" ||
-                          order.deliveryman_id != null
-                            ? "Accepted"
-                            : "Accept"}
-                        </button>
-                        {order.status === "ACCEPTED" &&
-                          order.deliveryman_id != null &&
-                          order.status !== "DELIVERED" && (
-                            <button
-                              className="px-4 py-1 rounded shadow bg-emerald-800 hover:bg-emerald-900 text-white font-semibold transition"
-                              onClick={() => handleDelivered(order, idx)}
-                              disabled={order.status === "DELIVERED"}
-                            >
-                              {order.status === "DELIVERED"
-                                ? "Delivered"
-                                : "Mark as Delivered"}
-                            </button>
-                          )}
-                        {order.status === "DELIVERED" && (
-                          <span className="px-4 py-1 rounded bg-gray-700 text-emerald-400 font-semibold">
-                            Delivered
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+        {/* Available Orders Section */}
+        {renderOrderTable(
+          availableOrders,
+          loadingAvailable,
+          "Available Orders",
+          <FiBox className="text-emerald-400" />,
+          "No available orders in your preferred areas. Check back later!"
+        )}
+
+        {/* Under Shipment Orders Section */}
+        {renderOrderTable(
+          underShipmentOrders,
+          loadingUnderShipment,
+          "Under Shipment",
+          <FiClock className="text-emerald-400" />,
+          "No shipments currently under your delivery. Accept an available order!"
+        )}
+
+        {/* Delivered Orders Section */}
+        {renderOrderTable(
+          deliveredOrders,
+          loadingDelivered,
+          "Delivered Shipments",
+          <FiArchive className="text-emerald-400" />,
+          "No shipments delivered by you yet."
+        )}
 
         {/* Password Change Card */}
         <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 rounded-2xl shadow-2xl p-8 border border-gray-800 max-w-lg mx-auto">
@@ -375,11 +482,10 @@ function DeliveryManDashBoard() {
             </button>
             {passwordMsg && (
               <div
-                className={`text-sm mt-2 ${
-                  passwordMsg.type === "success"
-                    ? "text-emerald-400"
-                    : "text-red-400"
-                }`}
+                className={`text-sm mt-2 ${passwordMsg.type === "success"
+                  ? "text-emerald-400"
+                  : "text-red-400"
+                  }`}
               >
                 {passwordMsg.text}
               </div>

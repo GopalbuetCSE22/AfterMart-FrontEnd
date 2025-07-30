@@ -136,7 +136,7 @@ const Header = () => {
     const token = localStorage.getItem("authToken");
     const userId = localStorage.getItem("user_id");
     if (!token || !userId) {
-      toast.warn("You jave to log in as a user to sell any product");
+      toast.warn("You have to log in as a user to sell any product");
       return;
     }
     //there is a field in the "User" table named isverified which is boolean
@@ -198,11 +198,10 @@ const Header = () => {
 
   return (
     <header
-      className={`sticky top-0 z-50 transition-all duration-300 ${
-        isScrolled
+      className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled
           ? "bg-slate-900 shadow-md py-2"
           : "bg-gradient-to-r from-slate-700 to-slate-900 py-4"
-      } text-white`}
+        } text-white`}
     >
       {/* Top Bar */}
       <div className="container mx-auto px-4 flex justify-between items-center transition-all duration-300">
@@ -229,9 +228,9 @@ const Header = () => {
           </button> */}
 
           {!isLoggedIn &&
-          !isLoggedInDeliveryCompany &&
-          !isLoggedInAdmin &&
-          !isLoggedInDeliveryMan ? (
+            !isLoggedInDeliveryCompany &&
+            !isLoggedInAdmin &&
+            !isLoggedInDeliveryMan ? (
             <>
               <a
                 href="/registertype"
@@ -308,8 +307,7 @@ const Header = () => {
                   onClick={() => {
                     setSuggestions([]);
                     navigate(
-                      `/search?q=${encodeURIComponent(item)}&userId=${
-                        localStorage.getItem("user_id") || ""
+                      `/search?q=${encodeURIComponent(item)}&userId=${localStorage.getItem("user_id") || ""
                       }`
                     );
                   }}

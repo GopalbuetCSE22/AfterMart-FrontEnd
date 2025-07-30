@@ -319,17 +319,20 @@ const ChatBox = ({ productId, sellerId, buyerId, conversationId: initialConversa
                     return (
                         <div
                             key={msg.message_id}
-                            className={`flex ${isSender ? "justify-end" : "justify-start"}`}
+                            // Add 'relative' to the outermost container to serve as positioning context for the absolute delete button
+                            className={`flex ${isSender ? "justify-end" : "justify-start"} relative`}
                             onMouseEnter={() => setHoveredMessageId(msg.message_id)}
                             onMouseLeave={() => setHoveredMessageId(null)}
                         >
-                            {/* The inner flex container now always has the delete button first, then the message bubble */}
-                            <div className="flex items-end gap-2 max-w-[80%]">
-                                {/* Delete button, visible on hover and only for sender's messages */}
-                                {isSender && hoveredMessageId === msg.message_id && (
+                            <div className={`flex items-end max-w-[80%]`} style={{ position: 'relative' }}> {/* Ensure this is relative for absolute positioning */}
+                                {/* Delete button */}
+                                {isSender && (
                                     <button
                                         onClick={() => handleDeleteMessage(msg.message_id)}
-                                        className="mb-1 p-1 text-red-400 hover:text-red-500 transition-colors duration-200"
+                                        className={`absolute p-1 text-red-400 hover:text-red-500 transition-opacity duration-200 z-10
+                                            ${hoveredMessageId === msg.message_id ? 'opacity-100' : 'opacity-0'}
+                                            ${isSender ? 'left-[-20px] top-[-5px]' : 'right-[-20px] top-[-5px]'}` // Adjusted positioning
+                                        }
                                         aria-label="Delete message"
                                     >
                                         <Trash2 size={16} /> {/* Lucide-react Trash2 icon */}

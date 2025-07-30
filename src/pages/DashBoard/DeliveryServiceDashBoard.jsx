@@ -18,6 +18,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 const BDAPI_BASE_URL = "https://bdapi.vercel.app/api/v.1";
+const BACKEND_PORT = 5000; // Define your backend port here for clarity
 
 function DeliveryServiceDashBoard() {
   const [form, setForm] = useState({
@@ -29,7 +30,7 @@ function DeliveryServiceDashBoard() {
     division: "",
     district: "",
     ward: "",
-    area: "",
+    area: [], // Still an array to hold multiple areas
   });
   const [deliverymen, setDeliverymen] = useState([]);
   const [selectedDeliveryman, setSelectedDeliveryman] = useState(null);
@@ -42,6 +43,7 @@ function DeliveryServiceDashBoard() {
 
   const navigate = useNavigate();
 
+  // --- EXISTING CODE (UNCHANGED) ---
   // Fetch divisions on mount
   useEffect(() => {
     const fetchDivisions = async () => {
@@ -160,34 +162,61 @@ function DeliveryServiceDashBoard() {
     fetchAreas();
   }, [form.ward, availableWards]);
 
+  const fetchDeliverymen = async () => {
+    const company_id = localStorage.getItem("company_id");
+    if (!company_id) {
+      alert("Company ID not found. Please log in again.");
+      navigate("/login");
+      return;
+    }
+    try {
+      const res = await axios.get(
+        `http://localhost:${BACKEND_PORT}/api/delivery/showallDeliveryman/${company_id}`
+      );
+      setDeliverymen(res.data);
+    } catch (err) {
+      console.error("Error fetching deliverymen:", err);
+      setDeliverymen([]);
+    }
+  };
+
   useEffect(() => {
-    const fetchDeliverymen = async () => {
-      const company_id = localStorage.getItem("company_id");
-      if (!company_id) {
-        alert("Company ID not found. Please log in again.");
-        navigate("/login");
-        return;
-      }
-      try {
-        const res = await axios.get(
-          `http://localhost:5000/api/delivery/showallDeliveryman/${company_id}`
-        );
-        setDeliverymen(res.data);
-      } catch (err) {
-        console.error("Error fetching deliverymen:", err);
-        setDeliverymen([]);
-      }
-    };
     fetchDeliverymen();
-  }, [navigate, deliverymen]);
+  }, [navigate]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  // --- NEW HANDLER FOR TAG SELECTION ---
+  const handleAreaTagClick = (areaName) => {
+    setForm((prevForm) => {
+      // Check if the area is already selected
+      if (prevForm.area.includes(areaName)) {
+        // If selected, remove it
+        return {
+          ...prevForm,
+          area: prevForm.area.filter((name) => name !== areaName),
+        };
+      } else {
+        // If not selected, add it
+        return {
+          ...prevForm,
+          area: [...prevForm.area, areaName],
+        };
+      }
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const company_id = localStorage.getItem("company_id");
+
+    if (!Array.isArray(form.area) || form.area.length === 0) {
+      alert("Please select at least one preferred area.");
+      return;
+    }
+
     const formdata = {
       company_id,
       name: form.name,
@@ -198,15 +227,15 @@ function DeliveryServiceDashBoard() {
       division: form.division,
       district: form.district,
       ward: form.ward,
-      area: form.area,
+      areas: form.area, // Send 'areas' (plural) as an array
     };
 
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/delivery/createDelivaryman",
+      await axios.post(
+        `http://localhost:${BACKEND_PORT}/api/delivery/createDelivaryman`,
         formdata
       );
-      setDeliverymen([...deliverymen, res.data]);
+      alert("Deliveryman registered successfully!");
       setForm({
         name: "",
         phone: "",
@@ -216,12 +245,15 @@ function DeliveryServiceDashBoard() {
         division: "",
         district: "",
         ward: "",
-        area: "",
+        area: [], // Reset to empty array
       });
-      alert("Deliveryman registered successfully!");
+      fetchDeliverymen(); // Re-fetch deliverymen to update the list
     } catch (err) {
       console.error("Error registering deliveryman:", err);
-      alert("Failed to register deliveryman. Please try again.");
+      const errorMessage =
+        err.response?.data?.error ||
+        "Failed to register deliveryman. Please try again.";
+      alert(errorMessage);
     }
   };
 
@@ -246,9 +278,12 @@ function DeliveryServiceDashBoard() {
       {/* Dashboard Heading Board */}
       <div className="bg-gradient-to-r from-blue-900 to-purple-900 rounded-3xl shadow-xl p-6 mb-12 max-w-4xl mx-auto border border-blue-700 animate-slide-down">
         <h1 className="text-4xl font-extrabold text-center text-white tracking-wider flex items-center justify-center gap-4 drop-shadow-lg">
-          <FiHome className="text-blue-300 text-5xl animate-bounce-slow" /> Delivery Service Dashboard
+          <FiHome className="text-blue-300 text-5xl animate-bounce-slow" />{" "}
+          Delivery Service Dashboard
         </h1>
-        <p className="text-center text-blue-200 mt-2 text-lg">Manage your delivery personnel and operations efficiently.</p>
+        <p className="text-center text-blue-200 mt-2 text-lg">
+          Manage your delivery personnel and operations efficiently.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
@@ -331,7 +366,7 @@ function DeliveryServiceDashBoard() {
                       division: e.target.value,
                       district: "",
                       ward: "",
-                      area: "",
+                      area: [],
                     }))
                   }
                   className="flex-1 bg-transparent text-gray-100 focus:outline-none focus:ring-0"
@@ -339,7 +374,11 @@ function DeliveryServiceDashBoard() {
                 >
                   <option value="">Select Division</option>
                   {availableDivisions.map((div) => (
-                    <option key={div.id} value={div.name} className="bg-gray-800 text-gray-200">
+                    <option
+                      key={div.id}
+                      value={div.name}
+                      className="bg-gray-800 text-gray-200"
+                    >
                       {div.name}
                     </option>
                   ))}
@@ -356,7 +395,7 @@ function DeliveryServiceDashBoard() {
                       ...f,
                       district: e.target.value,
                       ward: "",
-                      area: "",
+                      area: [],
                     }))
                   }
                   className="flex-1 bg-transparent text-gray-100 focus:outline-none focus:ring-0"
@@ -365,7 +404,11 @@ function DeliveryServiceDashBoard() {
                 >
                   <option value="">Select District</option>
                   {availableDistricts.map((dist) => (
-                    <option key={dist.id} value={dist.name} className="bg-gray-800 text-gray-200">
+                    <option
+                      key={dist.id}
+                      value={dist.name}
+                      className="bg-gray-800 text-gray-200"
+                    >
                       {dist.name}
                     </option>
                   ))}
@@ -381,7 +424,7 @@ function DeliveryServiceDashBoard() {
                     setForm((f) => ({
                       ...f,
                       ward: e.target.value,
-                      area: "",
+                      area: [],
                     }))
                   }
                   className="flex-1 bg-transparent text-gray-100 focus:outline-none focus:ring-0"
@@ -390,39 +433,56 @@ function DeliveryServiceDashBoard() {
                 >
                   <option value="">Select Ward (Upazila)</option>
                   {availableWards.map((w) => (
-                    <option key={w.id} value={w.name} className="bg-gray-800 text-gray-200">
+                    <option
+                      key={w.id}
+                      value={w.name}
+                      className="bg-gray-800 text-gray-200"
+                    >
                       {w.name}
                     </option>
                   ))}
                 </select>
               </div>
-              {/* Area Dropdown */}
-              <div className="col-span-full flex items-center gap-3 bg-gray-800/60 rounded-lg p-2 border border-gray-700">
-                <FiMapPin className="text-blue-400 text-xl" />
-                <select
-                  name="area"
-                  value={form.area}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      area: e.target.value,
-                    }))
-                  }
-                  className="flex-1 bg-transparent text-gray-100 focus:outline-none focus:ring-0"
-                  required={availableAreas.length > 0}
-                  disabled={!form.ward || availableAreas.length === 0}
-                >
-                  <option value="">
-                    {availableAreas.length === 0
-                      ? "No areas found for this ward"
-                      : "Select Area (Union)"}
-                  </option>
-                  {availableAreas.map((a) => (
-                    <option key={a.id} value={a.name} className="bg-gray-800 text-gray-200">
-                      {a.name}
-                    </option>
-                  ))}
-                </select>
+              {/* --- CHNAGE 1: Area Tag Selector --- */}
+              <div className="col-span-full">
+                <label className="block text-gray-300 text-sm font-bold mb-2 flex items-center gap-2">
+                  <FiMapPin className="text-blue-400 text-xl" />
+                  Preferred Areas (Union/Multiple):
+                </label>
+                {availableAreas.length === 0 ? (
+                  <p className="text-gray-400 text-sm">
+                    {form.ward
+                      ? "No areas found for this ward."
+                      : "Select a ward to see available areas."}
+                  </p>
+                ) : (
+                  <div className="flex flex-wrap gap-2 p-3 bg-gray-800/60 rounded-lg border border-gray-700 max-h-48 overflow-y-auto custom-scrollbar">
+                    {availableAreas.map((areaObj) => (
+                      <button
+                        type="button" // Important: Prevent form submission
+                        key={areaObj.id}
+                        onClick={() => handleAreaTagClick(areaObj.name)}
+                        className={`
+                          px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200
+                          ${form.area.includes(areaObj.name)
+                            ? "bg-blue-600 text-white shadow-md hover:bg-blue-700"
+                            : "bg-gray-700 text-gray-200 hover:bg-gray-600 border border-gray-600"
+                          }
+                        `}
+                      >
+                        {areaObj.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {/* Hidden input to satisfy HTML5 'required' for form submission
+                    when using custom controls. This is an accessibility/validation trick. */}
+                <input
+                  type="hidden"
+                  name="hidden_area_input"
+                  value={form.area.join(',')} // Join the array into a string
+                  required={form.area.length === 0 && availableAreas.length > 0} // Only required if areas are available but none selected
+                />
               </div>
             </div>
             <button
@@ -462,9 +522,8 @@ function DeliveryServiceDashBoard() {
                   {deliverymen.map((dm, idx) => (
                     <tr
                       key={dm.id || dm.deliveryman_id}
-                      className={`transition-all duration-200 ${
-                        idx % 2 === 0 ? "bg-gray-900/80" : "bg-gray-800/80"
-                      } hover:bg-blue-900/60`}
+                      className={`transition-all duration-200 ${idx % 2 === 0 ? "bg-gray-900/80" : "bg-gray-800/80"
+                        } hover:bg-blue-900/60`}
                     >
                       <td className="py-3 px-5 border-b border-gray-700 text-gray-100">
                         {dm.name}
@@ -494,11 +553,10 @@ function DeliveryServiceDashBoard() {
         </div>
       </div>
 
-      {/* Side Panel for Deliveryman Details */}
+      {/* Side Panel for Deliveryman Details - This will be updated in a later step */}
       <div
-        className={`fixed top-0 right-0 h-full w-96 bg-gradient-to-br from-gray-900 to-gray-800 shadow-2xl border-l border-blue-800 z-50 p-8 flex flex-col transition-transform duration-300 ${
-          selectedDeliveryman ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed top-0 right-0 h-full w-96 bg-gradient-to-br from-gray-900 to-gray-800 shadow-2xl border-l border-blue-800 z-50 p-8 flex flex-col transition-transform duration-300 ${selectedDeliveryman ? "translate-x-0" : "translate-x-full"
+          }`}
         style={{ willChange: "transform", backdropFilter: "blur(8px)" }}
       >
         {selectedDeliveryman && (
@@ -550,15 +608,33 @@ function DeliveryServiceDashBoard() {
                 <span className="font-semibold">Ward (Upazila):</span>{" "}
                 {selectedDeliveryman.ward}
               </div>
-              <div className="flex items-center gap-3 text-lg">
-                <FiMapPin className="text-blue-400" />
-                <span className="font-semibold">Area (Union):</span>{" "}
-                {selectedDeliveryman.area}
+              {/* --- CHNAGE 1: Displaying multiple preferred areas --- */}
+              <div className="text-lg">
+                <div className="flex items-center gap-3 mb-2">
+                  <FiMapPin className="text-blue-400" />
+                  <span className="font-semibold">Preferred Areas (Union):</span>{" "}
+                </div>
+                {/* Check if areas exist and are an array before mapping */}
+                {selectedDeliveryman.areas && Array.isArray(selectedDeliveryman.areas) && selectedDeliveryman.areas.length > 0 ? (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {selectedDeliveryman.areas.map((area, index) => (
+                      <span
+                        key={index} // Using index as key is okay here because the list is static for display
+                        className="bg-blue-600/70 text-white text-sm px-3 py-1 rounded-full shadow-sm"
+                      >
+                        {area}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-400 text-sm italic">No preferred areas specified.</p>
+                )}
               </div>
             </div>
           </>
         )}
       </div>
+
 
       {/* Logout Button */}
       <div className="fixed bottom-8 left-8 z-50">
