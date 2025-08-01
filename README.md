@@ -1,12 +1,37 @@
-# React + Vite
+AfterMart is an online second-hand marketplace platform designed to facilitate secure and seamless buying, selling, and delivery of pre-owned products. The system is built with a focus on usability, efficiency, and trust, supporting multiple user roles and administrative oversight to ensure a smooth and reliable transaction experience.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Key Features: 
+User Roles: Role-based dashboards for Buyers, Sellers, Admins, and Delivery Personnel, each with tailored functionalities.
 
-Currently, two official plugins are available:
+Product Listings: Sellers can list used items with detailed descriptions, pricing, and images to attract potential buyers.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Moderation & Approval: Admins review and approve listed products before they are made visible to buyers, ensuring quality control and platform safety.
 
-## Expanding the ESLint configuration
+Order Management System: Buyers can place orders for approved products. The system tracks orders through various statuses such as pending, processing, assigned, and delivered.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Delivery Assignment: Orders can be fulfilled either by the seller (self-delivery) or assigned to available third-party delivery personnel. Assignments are made based on preferred delivery areas and current availability.
+
+Notification System: Users receive real-time system messages regarding order status updates, approvals, assignments, and other relevant events.
+
+Ratings & Reviews: After successful delivery, buyers and sellers can review and rate each other to foster a trusted community and ensure accountability.
+
+Search & Filtering: Buyers can browse and locate items using advanced filters such as category, location, price range, and condition.
+
+Buyer-Seller Chat: Real-time chat system between buyers and sellers for product-specific discussions. Buyers can ask questions, request more photos, and clarify product conditions before purchasing.
+
+Tech Stack: 
+Backend: Node.js, Express.js
+
+Frontend: React.js
+
+Database: PostgreSQL
+
+Authentication: JWT-based secure sessions
+
+Database Access: pg (PostgreSQL native driver)
+
+Database Specification: 
+The platform uses a relational database consisting of 17 normalized tables, designed to efficiently manage users, products, orders, reviews, delivery logistics, notifications, chats, and more. The schema ensures data integrity, scalability, and optimized query performance across all modules.
+
+Project Goal:
+The primary objective of AfterMart is to provide a trustworthy, feature-rich, and user-friendly platform for second-hand transactions. By integrating robust backend logic, secure communication, and administrative controls, AfterMart bridges the gap between buyers and sellers while ensuring a safe and reliable marketplace experience.
