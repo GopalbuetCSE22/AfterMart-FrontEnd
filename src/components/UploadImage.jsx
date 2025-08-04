@@ -37,7 +37,7 @@ function UploadImage({ onUploadSuccess }) {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/uploadImage/upload/${userid}`,
+        `${process.env.REACT_APP_API_URL}/api/uploadImage/upload/${userid}`,
         {
           method: "POST",
           body: formData,

@@ -8,7 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { FiArrowLeft, FiSave } from "react-icons/fi";
 import { PlusCircle, X } from 'lucide-react';
 
-const BASE_URL = "http://localhost:5000/api";
+const BASE_URL = `${process.env.REACT_APP_API_URL}/api`;
 
 function ProductManagementPage() {
   const { id } = useParams();

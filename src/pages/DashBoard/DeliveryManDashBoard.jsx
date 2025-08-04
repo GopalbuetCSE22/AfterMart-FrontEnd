@@ -80,7 +80,7 @@ function DeliveryManDashBoard() {
     setLoadingProfile(true);
     try {
       const profileRes = await axios.get(
-        `http://localhost:5000/api/deliveryman/profile/${deliveryman_id}`
+        `${process.env.REACT_APP_API_URL}/api/deliveryman/profile/${deliveryman_id}`
       );
       const rawProfileData = profileRes.data;
 
@@ -109,7 +109,7 @@ function DeliveryManDashBoard() {
     setLoadingAvailable(true);
     try {
       const availableRes = await axios.get(
-        `http://localhost:5000/api/deliveryman/orders/available/${deliveryman_id}`
+        `${process.env.REACT_APP_API_URL}/api/deliveryman/orders/available/${deliveryman_id}`
       );
       setAvailableOrders(availableRes.data);
     } catch (err) {
@@ -123,7 +123,7 @@ function DeliveryManDashBoard() {
     setLoadingUnderShipment(true);
     try {
       const underShipmentRes = await axios.get(
-        `http://localhost:5000/api/deliveryman/orders/under-shipment/${deliveryman_id}`
+        `${process.env.REACT_APP_API_URL}/api/deliveryman/orders/under-shipment/${deliveryman_id}`
       );
       setUnderShipmentOrders(underShipmentRes.data);
     } catch (err) {
@@ -137,7 +137,7 @@ function DeliveryManDashBoard() {
     setLoadingDelivered(true);
     try {
       const deliveredRes = await axios.get(
-        `http://localhost:5000/api/deliveryman/orders/delivered/${deliveryman_id}`
+        `${process.env.REACT_APP_API_URL}/api/deliveryman/orders/delivered/${deliveryman_id}`
       );
       setDeliveredOrders(deliveredRes.data);
     } catch (err) {
@@ -166,7 +166,7 @@ function DeliveryManDashBoard() {
         return;
       }
 
-      await axios.post(`http://localhost:5000/api/deliveryman/acceptpurchase`, {
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/deliveryman/acceptpurchase`, {
         purchaseId: order.purchase_id,
         deliverymanId: deliveryman_id,
       });
@@ -190,7 +190,7 @@ function DeliveryManDashBoard() {
         return;
       }
       await axios.patch(
-        `http://localhost:5000/api/deliveryman/markdelivered/${order.shipment_id}`
+        `${process.env.REACT_APP_API_URL}/api/deliveryman/markdelivered/${order.shipment_id}`
       );
 
       // After marking delivered, re-fetch all data to refresh sections
@@ -224,7 +224,7 @@ function DeliveryManDashBoard() {
     try {
       const deliveryman_id = localStorage.getItem("deliveryman_id");
       await axios.patch(
-        `http://localhost:5000/api/deliveryman/changepassword/${deliveryman_id}`,
+        `${process.env.REACT_APP_API_URL}/api/deliveryman/changepassword/${deliveryman_id}`,
         {
           oldPassword: passwordData.oldPassword,
           newPassword: passwordData.newPassword,

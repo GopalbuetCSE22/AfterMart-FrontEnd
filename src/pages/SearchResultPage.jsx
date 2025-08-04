@@ -53,7 +53,7 @@ const SearchResultPage = () => {
   useEffect(() => {
     const fetchAllCategories = async () => {
       try {
-        const res = await axios.get(`http://localhost:${PORT}/api/categories`);
+        const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/categories`);
         setAvailableCategories(res.data);
       } catch (err) {
         console.error("Error fetching all categories for filters:", err);
@@ -81,7 +81,7 @@ const SearchResultPage = () => {
       };
 
       try {
-        const res = await axios.get(`http://localhost:${PORT}/api/products/search/all`, {
+        const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/products/search/all`, {
           params: queryApiParams,
         });
         setProducts(res.data.products);

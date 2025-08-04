@@ -3,7 +3,7 @@ import React, { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { FiCheckCircle, FiAlertCircle } from "react-icons/fi"; // FiUploadCloud removed
 
-const BASE_URL = "http://localhost:5000/api";
+const BASE_URL = `${process.env.REACT_APP_API_URL}/uploadImage`; // Use environment variable for base URL
 const DEFAULT_USER_IMAGE = "https://digitalhealthskills.com/no-user-image-icon-27/";
 
 /**

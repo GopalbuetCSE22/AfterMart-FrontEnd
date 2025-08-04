@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import axios from 'axios';
 import { Paperclip, Send, Trash2, X, Loader2, MessageCircleMore } from "lucide-react"; // Added MessageCircleMore icon
 
-const BASE_URL = 'http://localhost:5000/api';
+const BASE_URL = `${process.env.REACT_APP_API_URL}/api`;
 
 const ChatBox = ({ productId, sellerId, buyerId, conversationId: initialConversationId, currentUserId, onClose }) => {
     // Initialize conversationId using the prop if available, otherwise null

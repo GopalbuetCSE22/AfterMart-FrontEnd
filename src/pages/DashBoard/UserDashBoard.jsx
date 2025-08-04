@@ -17,7 +17,8 @@ import {
 import ChatBox from "../../components/ChatBox";
 import ProfileImageUploader from "../../components/ProfileImageUploader"; // NEW: Import the new component
 
-const BASE_URL = "http://localhost:5000/api";
+const BASE_URL = `${process.env.REACT_APP_API_URL}/api`;
+
 const DEFAULT_USER_IMAGE = "https://www.vecteezy.com/free-vector/default-user";
 // Example logo SVG (replace with your own if needed)
 const Logo = () => (

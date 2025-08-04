@@ -86,7 +86,7 @@ const Header = () => {
     const fetchInitialKeywords = async () => {
       try {
         const res = await fetch(
-          `http://localhost:${PORT}/api/products/search/initialKeywords`
+          `${process.env.REACT_APP_API_URL}/api/products/search/initialKeywords`
         );
         const data = await res.json();
         setLocalKeywords(data.keywords || []);
@@ -146,7 +146,7 @@ const Header = () => {
     try {
       // Step 3: Make a GET request to fetch the latest user data (especially isverified)
       const response = await fetch(
-        `http://localhost:${PORT}/api/users/isVerified/${userId}`,
+        `${process.env.REACT_APP_API_URL}/api/users/isVerified/${userId}`,
         {
           method: "GET",
           headers: {
@@ -199,8 +199,8 @@ const Header = () => {
   return (
     <header
       className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled
-          ? "bg-slate-900 shadow-md py-2"
-          : "bg-gradient-to-r from-slate-700 to-slate-900 py-4"
+        ? "bg-slate-900 shadow-md py-2"
+        : "bg-gradient-to-r from-slate-700 to-slate-900 py-4"
         } text-white`}
     >
       {/* Top Bar */}

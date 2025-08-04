@@ -21,7 +21,7 @@ import { toast } from "react-toastify";
 
 import { Star } from "lucide-react";
 const PORT = 5000;
-const BASE_URL = `http://localhost:${PORT}/api`;
+const BASE_URL = `${process.env.REACT_APP_API_URL}/api`;
 
 const ProductDetail = () => {
   const { id } = useParams();

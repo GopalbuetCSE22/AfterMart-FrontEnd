@@ -10,7 +10,7 @@ function DelivaryManLogin() {
     e.preventDefault();
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/auth/deliveryManlogin",
+        `${process.env.REACT_APP_API_URL}/api/auth/deliveryManlogin`,
         formdata
       );
       const { token } = response.data;
@@ -67,11 +67,10 @@ function DelivaryManLogin() {
         </a>
         {message && (
           <p
-            className={`text-center ${
-              message === "Login successful!"
+            className={`text-center ${message === "Login successful!"
                 ? "text-green-400"
                 : "text-red-400"
-            }`}
+              }`}
           >
             {message}
           </p>

@@ -36,7 +36,7 @@ function UploadImage() {
     formData.append('image', image);
 
     try {
-      const res = await fetch(`http://localhost:5000/api/uploadImage/uploadProduct/${productId}`, {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/uploadImage/uploadProduct/${productId}`, {
         method: 'POST',
         body: formData,
       });

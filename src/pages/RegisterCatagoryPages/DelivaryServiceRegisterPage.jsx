@@ -173,7 +173,8 @@ function DelivaryServiceRegisterPage() {
         return;
       }
 
-      await axios.post("http://localhost:5000/api/delivery/register", formdata);
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/delivery/register`, formdata);
+      
       setMessage("🎉 Registration successful!");
       setFormData({
         companyName: "",

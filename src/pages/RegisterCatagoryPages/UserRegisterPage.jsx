@@ -6,7 +6,7 @@ import { Link, useNavigate } from "react-router-dom"; // Added useNavigate
 // Base URL for the Bangladeshi API for location data
 const BDAPI_BASE_URL = "https://bdapi.vercel.app/api/v.1";
 // Base URL for your backend API
-const BACKEND_BASE_URL = "http://localhost:5000/api"; // Centralize backend URL
+const BACKEND_BASE_URL = `${process.env.REACT_APP_API_URL}/api`;
 
 function UserRegisterPage() {
   const navigate = useNavigate(); // Add navigate hook

@@ -15,7 +15,7 @@ const HomePage = () => {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const res = await axios.get(`http://localhost:${PORT}/api/products/recent/all`);
+                const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/products/recent/all`);
                 setProducts(res.data);
                 setError(res.data.length === 0); // if array is empty
             } catch (err) {

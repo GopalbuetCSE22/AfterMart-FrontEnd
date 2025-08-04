@@ -171,7 +171,7 @@ function DeliveryServiceDashBoard() {
     }
     try {
       const res = await axios.get(
-        `http://localhost:${BACKEND_PORT}/api/delivery/showallDeliveryman/${company_id}`
+        `${process.env.REACT_APP_API_URL}/api/delivery/showallDeliveryman/${company_id}`
       );
       setDeliverymen(res.data);
     } catch (err) {
@@ -232,7 +232,7 @@ function DeliveryServiceDashBoard() {
 
     try {
       await axios.post(
-        `http://localhost:${BACKEND_PORT}/api/delivery/createDelivaryman`,
+        `${process.env.REACT_APP_API_URL}/api/delivery/createDelivaryman`,
         formdata
       );
       alert("Deliveryman registered successfully!");

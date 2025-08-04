@@ -25,12 +25,11 @@ import RegisterTypePage from './pages/RegisterCatagoryPages/RegisterTypePage';
 //productmanagemet
 import ProductSellPage from './pages/ProductSellPage'; // Product sell page
 
-// Assuming supabase client configuration (from your provided App.js)
-import supabase from "./config/superBaseClient";
+//import supabase from "./config/superBaseClient";
 
 
 function App() {
-  console.log(supabase); // Log supabase to check its initialization
+  //console.log(supabase); // Log supabase to check its initialization
 
   return (
     <Router> {/* Using Router (alias for BrowserRouter) */}
