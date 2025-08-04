@@ -50,9 +50,9 @@ const AdminDashboard = () => {
         productsRes,
         usersRes,
       ] = await Promise.all([
-        axios.get(`${process.env.REACT_APP_API_URL}/api/delivery/showDeliveryCompanyToVerify`),
-        axios.get(`${process.env.REACT_APP_API_URL}/api/products/showProductsToApprove`),
-        axios.get(`${process.env.REACT_APP_API_URL}/api/users/showUsersToVerify`),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/delivery/showDeliveryCompanyToVerify`),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/products/showProductsToApprove`),
+        axios.get(`${import.meta.env.VITE_API_URL}/api/users/showUsersToVerify`),
       ]);
       setDeliveryCompany(deliveryRes.data);
       setProductsToApprove(productsRes.data);
@@ -68,7 +68,7 @@ const AdminDashboard = () => {
   const handleVerifyCompany = async (companyId) => {
     try {
       await axios.patch(
-        `${process.env.REACT_APP_API_URL}/api/delivery/verifyDeliveryCompany/${companyId}`,
+        `${import.meta.env.VITE_API_URL}/api/delivery/verifyDeliveryCompany/${companyId}`,
         { admin_id: adminId }
       );
       setDeliveryCompany(
@@ -84,7 +84,7 @@ const AdminDashboard = () => {
   const handleVerifyProduct = async (productId) => {
     try {
       await axios.patch(
-        `${process.env.REACT_APP_API_URL}/api/products/verifyProduct/${productId}`
+        `${import.meta.env.VITE_API_URL}/api/products/verifyProduct/${productId}`
       );
       setProductsToApprove(
         productsToApprove.filter((p) => p.product_id !== productId)
@@ -98,7 +98,7 @@ const AdminDashboard = () => {
 
   const handleVerifyUser = async (userId) => {
     try {
-      await axios.patch(`${process.env.REACT_APP_API_URL}/api/users/verifyUser/${userId}`);
+      await axios.patch(`${import.meta.env.VITE_API_URL}/api/users/verifyUser/${userId}`);
       setUsersToVerify(usersToVerify.filter((u) => u.user_id !== userId));
       // Optional: Show a success toast/notification here
     } catch (error) {
@@ -115,10 +115,9 @@ const AdminDashboard = () => {
   // --- TailwindCSS Class Definitions ---
   const tabClass = (tab) =>
     `flex-1 px-4 py-3 text-center rounded-t-xl font-semibold text-lg transition duration-300 transform border-b-2
-    ${
-      activeTab === tab
-        ? "bg-gradient-to-r from-purple-700 to-indigo-700 text-white shadow-lg border-indigo-500"
-        : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border-transparent"
+    ${activeTab === tab
+      ? "bg-gradient-to-r from-purple-700 to-indigo-700 text-white shadow-lg border-indigo-500"
+      : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border-transparent"
     }`;
 
   const sectionClass =

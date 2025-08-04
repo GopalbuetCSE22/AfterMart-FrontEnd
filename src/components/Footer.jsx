@@ -13,7 +13,7 @@ const Footer = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/stats/summary`);
+                const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/stats/summary`);
                 setStats(res.data);
             } catch (err) {
                 console.error("Error fetching stats:", err);

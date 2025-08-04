@@ -21,7 +21,7 @@ import { toast } from "react-toastify";
 
 import { Star } from "lucide-react";
 const PORT = 5000;
-const BASE_URL = `${process.env.REACT_APP_API_URL}/api`;
+const BASE_URL = `${import.meta.env.VITE_API_URL}/api`;
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -274,7 +274,7 @@ const ProductDetail = () => {
           const res = await axios.get(
             `${BASE_URL}/reviews/fromSellerInfo/${sellerId}`
           );
-        //   console.log(res.data.reviews);
+          //   console.log(res.data.reviews);
 
           setAverageRating(res.data.averageRating);
           setReviews(res.data.reviews);
@@ -323,7 +323,7 @@ const ProductDetail = () => {
             <Star size={24} className="text-yellow-400" />
             Average Rating:{" "}
             <span className="text-white">
-              {averageRating !== null ? averageRating    : "N/A"}
+              {averageRating !== null ? averageRating : "N/A"}
             </span>
           </h4>
           {averageRating !== null && (
@@ -367,7 +367,7 @@ const ProductDetail = () => {
         )}
       </div>
     );
-    
+
   };
 
   return (
@@ -404,11 +404,10 @@ const ProductDetail = () => {
                       "https://placehold.co/80x80/334155/E2E8F0?text=N/A"
                     }
                     alt={`Thumbnail ${idx + 1}`}
-                    className={`w-20 h-20 object-cover rounded-xl cursor-pointer border-2 transition-all duration-300 ${
-                      idx === mainImageIndex
+                    className={`w-20 h-20 object-cover rounded-xl cursor-pointer border-2 transition-all duration-300 ${idx === mainImageIndex
                         ? "border-blue-400 shadow-md"
                         : "border-transparent"
-                    }`}
+                      }`}
                     onClick={() => setMainImageIndex(idx)}
                     onError={(e) => {
                       e.target.onerror = null;
@@ -465,9 +464,8 @@ const ProductDetail = () => {
               <DetailItem
                 icon={MapPin}
                 label="Location"
-                value={`${product.seller_area || "N/A"}, ${
-                  product.seller_district || "N/A"
-                }`}
+                value={`${product.seller_area || "N/A"}, ${product.seller_district || "N/A"
+                  }`}
               />
               <DetailItem
                 icon={Tag}

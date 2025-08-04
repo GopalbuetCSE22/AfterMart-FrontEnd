@@ -17,7 +17,7 @@ function DelivaryServiceLogin() {
     e.preventDefault();
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/auth/delivaryServicelogin`,
+        `${import.meta.env.VITE_API_URL}/api/auth/delivaryServicelogin`,
         formdata
       );
       const { token, company_id } = response.data;

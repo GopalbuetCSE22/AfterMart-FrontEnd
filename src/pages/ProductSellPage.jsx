@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 
 const PORT = 5000;
-const BASE_URL = `${process.env.REACT_APP_API_URL}`; // Define BASE_URL for consistency
+const BASE_URL = `${import.meta.env.VITE_API_URL}`; // Define BASE_URL for consistency
 
 const ProductSellPage = () => {
     const navigate = useNavigate();

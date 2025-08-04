@@ -171,7 +171,7 @@ function DeliveryServiceDashBoard() {
     }
     try {
       const res = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/delivery/showallDeliveryman/${company_id}`
+        `${import.meta.env.VITE_API_URL}/api/delivery/showallDeliveryman/${company_id}`
       );
       setDeliverymen(res.data);
     } catch (err) {
@@ -232,7 +232,7 @@ function DeliveryServiceDashBoard() {
 
     try {
       await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/delivery/createDelivaryman`,
+        `${import.meta.env.VITE_API_URL}/api/delivery/createDelivaryman`,
         formdata
       );
       alert("Deliveryman registered successfully!");

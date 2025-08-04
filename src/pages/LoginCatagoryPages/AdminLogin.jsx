@@ -12,7 +12,7 @@ function AdminLogin() {
     e.preventDefault();
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/auth/adminlogin`,
+        `${import.meta.env.VITE_API_URL}/api/auth/adminlogin`,
         formdata
       );
       const { token } = response.data;

@@ -86,7 +86,7 @@ const Header = () => {
     const fetchInitialKeywords = async () => {
       try {
         const res = await fetch(
-          `${process.env.REACT_APP_API_URL}/api/products/search/initialKeywords`
+          `${import.meta.env.VITE_API_URL}/api/products/search/initialKeywords`
         );
         const data = await res.json();
         setLocalKeywords(data.keywords || []);
@@ -146,7 +146,7 @@ const Header = () => {
     try {
       // Step 3: Make a GET request to fetch the latest user data (especially isverified)
       const response = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/users/isVerified/${userId}`,
+        `${import.meta.env.VITE_API_URL}/api/users/isVerified/${userId}`,
         {
           method: "GET",
           headers: {

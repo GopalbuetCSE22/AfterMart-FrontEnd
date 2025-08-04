@@ -17,7 +17,7 @@ import {
 import ChatBox from "../../components/ChatBox";
 import ProfileImageUploader from "../../components/ProfileImageUploader"; // NEW: Import the new component
 
-const BASE_URL = `${process.env.REACT_APP_API_URL}/api`;
+const BASE_URL = `${import.meta.env.VITE_API_URL}/api`;
 
 const DEFAULT_USER_IMAGE = "https://www.vecteezy.com/free-vector/default-user";
 // Example logo SVG (replace with your own if needed)
@@ -330,7 +330,7 @@ function UserDashBoard() {
                   <button
                     className="ml-3 text-sm bg-blue-700 hover:bg-blue-800 text-white px-3 py-1 rounded-md shadow"
                     onClick={() =>
-                      
+
                       navigate(`/dashboard/product/${prod.product_id}`)
                     }
                   >

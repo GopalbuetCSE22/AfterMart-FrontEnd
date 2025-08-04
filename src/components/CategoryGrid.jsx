@@ -45,7 +45,7 @@ const CategoryGrid = () => {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/categories/`);
+                const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/categories/`);
                 const data = response.data;
 
                 const categoriesWithIcons = data.map(cat => ({

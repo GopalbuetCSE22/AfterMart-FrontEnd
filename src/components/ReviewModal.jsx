@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 
 // Base URL for API calls. In a real application, this would typically come from environment variables.
-const BASE_URL = `${process.env.REACT_APP_API_URL}/api/reviews`;
+const BASE_URL = `${import.meta.env.VITE_API_URL}/api/reviews`;
 
 const ReviewModal = ({
     type, // Type of review: 'seller' or 'delivery'
